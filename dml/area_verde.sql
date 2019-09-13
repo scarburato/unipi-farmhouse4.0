@@ -28,7 +28,7 @@ CREATE TABLE `Lavorazione`
 PRIMARY KEY pk1(`lotto`, `agriturismo`, `dipendente`),
 
 CONSTRAINT `dipendente_fk1` FOREIGN KEY (`dipendente`) REFERENCES `Dipendente area produzione`(id),
-CONSTRAINT `lotto_fk1` FOREIGN KEY (`codice`, `agriturismo`) REFERENCES Lotto(`codice`, `agriturismo`)
+CONSTRAINT `lotto_fk2` FOREIGN KEY (`lotto`, `agriturismo`) REFERENCES Lotto(`codice`, `agriturismo`)
 );
 
 CREATE TABLE `Prodotto caseario`(
@@ -77,4 +77,61 @@ CONSTRAINT `passo_ricetta_fk1` FOREIGN KEY (ricetta, `numero passo`)
     
 CONSTRAINT `parametro_fk1` FOREIGN KEY (parametro)
 	REFERENCES Parametro(nome)
+);
+
+CREATE TABLE `Forma` (
+`id`						BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+`stato`						ENUM('Conservato', 'Acquistato', 'Scaduto') NOT NULL DEFAULT 'Conservato',
+`peso`						DECIMAL(4,2) UNSIGNED NOT NULL CHECK(peso <> 0),
+`locale stoccaggio`			INT UNSIGNED NULL DEFAULT NULL,
+
+`codice lotto`				CHAR(50) NOT NULL,
+`agriturismo del lotto`		INT UNSIGNED NOT NULL,
+
+-- Chiave del lotto
+CONSTRAINT `lotto_fk1` FOREIGN KEY (`codice lotto`, `agriturismo del lotto`)
+	REFERENCES Lotto(codice, agriturismo),
+
+-- Aggiunere dopo chiave al locale
+-- Controllo se e solo tipo è conservato allora la forma è in un locale
+CONSTRAINT `chk_stato_conservato` 
+	CHECK(NOT (stato <> 'Conservato' XOR`locale stoccaggio` IS NULL))
+);
+
+CREATE TABLE `Latte usato`(
+`forma`						BIGINT UNSIGNED NOT NULL,
+`cisterna`					INT UNSIGNED NOT NULL,
+`latte usato`				DECIMAL(2,2) CHECK(`latte usato` <> 0),
+
+PRIMARY KEY pk1(`forma`, `cisterna`),
+
+-- Chiave esterna alla forma
+CONSTRAINT `forma_fk1` FOREIGN KEY (forma) 
+	REFERENCES Forma(id)
+    
+-- Chiave esterna alla cisterna da aggiungere avanti
+);
+
+CREATE TABLE `Valore reale`(
+`forma`						BIGINT UNSIGNED NOT NULL,
+`parametro`					CHAR(70) NOT NULL,
+`ricetta`					CHAR(70) NOT NULL,
+`numero passo`				TINYINT UNSIGNED NOT NULL,
+
+`valore letto`				DOUBLE NOT NULL,
+
+PRIMARY KEY pk1(forma, parametro, ricetta, `numero passo`),
+
+-- Chiave esterna a forma
+CONSTRAINT `forma_fk2` FOREIGN KEY (`forma`) 
+	REFERENCES Forma(id),
+    
+-- Chiave esterna a paramtero
+CONSTRAINT `parametro_fk2` FOREIGN KEY(`parametro`)
+	REFERENCES Parametro(nome),
+    
+-- Chiave esterna a passo
+CONSTRAINT `passo_ricetta_fk2` FOREIGN KEY (ricetta, `numero passo`) 
+	REFERENCES Passo(ricetta, `numero passo`)
 );
