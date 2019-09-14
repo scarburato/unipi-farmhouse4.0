@@ -82,6 +82,7 @@ CONSTRAINT `parametro_fk1` FOREIGN KEY (parametro)
 CREATE TABLE `Forma` (
 `id`						BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
+`tipologia prodotto`		CHAR(70) NOT NULL,
 `stato`						ENUM('Conservato', 'Acquistato', 'Scaduto') NOT NULL DEFAULT 'Conservato',
 `peso`						DECIMAL(4,2) UNSIGNED NOT NULL CHECK(peso <> 0),
 `locale stoccaggio`			INT UNSIGNED NULL DEFAULT NULL,
@@ -92,6 +93,10 @@ CREATE TABLE `Forma` (
 -- Chiave del lotto
 CONSTRAINT `lotto_fk1` FOREIGN KEY (`codice lotto`, `agriturismo del lotto`)
 	REFERENCES Lotto(codice, agriturismo),
+    
+-- Chiave al tipo di prodot
+CONSTRAINT `prodotto_caseario_fk2` 
+	FOREIGN KEY (`tipologia prodotto`) REFERENCES `Prodotto caseario`(nome),
 
 -- Aggiunere dopo chiave al locale
 -- Controllo se e solo tipo è conservato allora la forma è in un locale
