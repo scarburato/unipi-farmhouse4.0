@@ -59,7 +59,8 @@ CONSTRAINT `ricetta_fk1` FOREIGN KEY (`ricetta`) REFERENCES Ricetta(`prodotto ca
 );
 
 CREATE TABLE `Parametro`(
-`nome`						CHAR(70) PRIMARY KEY NOT NULL
+`nome`						CHAR(70) PRIMARY KEY NOT NULL,
+`unità di misura`			CHAR(50) NOT NULL
 );
 
 CREATE TABLE `Aspettativa`(
@@ -68,7 +69,6 @@ CREATE TABLE `Aspettativa`(
 `numero passo`				TINYINT UNSIGNED NOT NULL,
 
 `valore atteso`				DOUBLE NOT NULL,
-`unità di misura`			CHAR(50) NOT NULL,
 
 PRIMARY KEY pk1(parametro, ricetta, `numero passo`),
 
