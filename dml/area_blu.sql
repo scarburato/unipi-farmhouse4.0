@@ -3,9 +3,9 @@ Scrip DML per l'areaea BLU
 */
 
 CREATE TABLE `Agriturismo` (
-`id`			      INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-`Nominativo`		VARCHAR(100)
-);
+`id`			   			   INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+`Nominativo`				   VARCHAR(100)
+);	
 
 CREATE TABLE `Tipologia letto`(
 `tipo`        CHAR(70) PRIMARY KEY,
@@ -152,39 +152,86 @@ ADD FOREIGN KEY (`nome zona`,agriturismo) REFERENCES `Escursione`(`nome`,agritur
 
 
 CREATE TABLE `Transazione` (
+`timestamp transazionale` 		TIMESTAMP,
+`data arrivo`					DATE NOT NULL,
+`codice carta`					CHAR(16) NOT NULL,
+`importo`						DECIMAL(4,2) NOT NULL,
+`indirizzo fatturazione`		VARCHAR NOT NULL,
 
+PRIMARY KEY         pk1(`timestamp transazionale`,`data arrivo`,`codice carta`),
+
+FOREIGN KEY (`data arrivo`) REFERENCES `Prenotazione stanze`(`data arrivo`),
+
+FOREIGN KEY (`codice carta`) REFERENCES `Prenotazione stanze`(`utente`)
 
 );
 CREATE TABLE `Composizione ordine` (
+`forma di formaggio`			INT UNSIGNED PRIMARY KEY,       --TO DO collegare con forma
+`reso`							BOOLEAN NOT NULL DEFAULT FALSE,
+`gradimento generale`			DECIMAL(5) UNSIGNED,  -- DA 0  A 5
+`conservazione`					DECIMAL(5) UNSIGNED,
+`qualità percepita`				DECIMAL(5) UNSIGNED,
+`gusto`							DECIMAL(5) UNSIGNED,
+`codice ordine acquisto`		INT UNSIGNED,
+);
 
+CREATE TABLE `Documento` (
+`utente store` 			CHAR(16) PRIMARY KEY ,
+`tipologia`    			VARCHAR NOT NULL,
+`data scadenza` 		DATE NOT NULL,
+`ente`  				CHAR(20) NOT NULL,
 
+FOREIGN KEY (`utente store`) REFERENCES `Utente store`(`codice fiscale`)
+
+);
+
+CREATE TABLE `Credenziali` (
+`nome utente`   		CHAR(50) PRIMARY KEY ,
+`risposta`				TEXT NOT NULL,
+`domanda segreta`		TEXT NOT NULL,
+`parola d ordine`		CHAR(100) NOT NULL
+);
+
+CREATE TABLE `Utente store` (
+`codice fiscale` 		CHAR(16) PRIMARY KEY ,
+`cognome`      		 	CHAR(50) NOT NULL,
+`nome`					CHAR(50) NOT NULL,
+`recapito telefonico`	CHAR(35) CHECK (`recapito telefonico` REGEXP '\\+[0-9]{1,3}-[0-9()+\\-]{1,30}'), /* In conformità a ISO 20022 */
+`data iscrizione`		DATE() NOT NULL,
+`indirizzo`				VARCHAR(150) NOT NULL,
+`credenziali`			CHAR(50) NOT NULL,
+
+FOREIGN KEY (`credenziali`) REFERENCES `Credenziali`(`nome utente`)
 );
 CREATE TABLE `Ordine acquisto` (
-
-
-);
-CREATE TABLE `Spedizione` (
-
-
-);
-CREATE TABLE `Passaggio` (
-
+`codice ordine` 		INT UNSIGNED PRIMARY KEY ,
+`utente store` 			CHAR(16) NOT NULL,
+`codice spedizione`		INT UNSIGNED,
+-- `stato`  ENUM(), ????
 
 );
 CREATE TABLE `HUB` (
-
-
+`id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT
 );
-CREATE TABLE `Utente store` (
 
-
+CREATE TABLE `Spedizione` (
+`codice`	INT UNSIGNED PRIMARY KEY AUTO_INCREMENT
+`stato`		ENUM('Spedito','In transito','In consegna','Consegnato') NOT NULL DEFAULT 'Spedito',
+`data consegna stimata`    DATE NOT NULL
 );
-CREATE TABLE `Credenziali` (
 
+CREATE TABLE `Passaggio` (
+`codice spedizione`		INT UNSIGNED,
+`hub`					INT UNSIGNED,
+`timestamp`  			TIMESTAMP,
+PRIMARY KEY             pk1(`codice spedizione`,`hub`),
 
+FOREIGN KEY (`codice spedizione`) REFERENCES `Spedizione`(`codice`),
+FOREIGN KEY (`hub`) REFERENCES `HUB`(`id`)
 );
-CREATE TABLE `Documento` (
 
 
-);
+
+
+
 
