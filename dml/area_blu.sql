@@ -16,7 +16,7 @@ CREATE TABLE `Stanza` (
 `numero stanza`          INT UNSIGNED NOT NULL,
 `agriturismo`            INT UNSIGNED NOT NULL,
 `tipologia stanza`       ENUM('Semplice','Suite'),
-`prezzo pernottamento`   INT UNSIGNED NOT NULL,
+`prezzo pernottamento`   DECIMAL(4,2) UNSIGNED NOT NULL,
   
 PRIMARY KEY              pk1(`numero stanza`,`agriturismo`),
   
@@ -68,7 +68,7 @@ FOREIGN KEY (`data arrivo`,utente) REFERENCES `Prenotazione stanze`(`data arrivo
 
 CREATE TABLE `Servizio aggiuntivo` (
 `nome` 			CHAR(60) PRIMARY KEY,
-`prezzo` 		INT UNSIGNED NOT NULL
+`prezzo` 		DECIMAL(4,2) UNSIGNED NOT NULL
 );
 
 CREATE TABLE `Prenotazione servizio` (
@@ -126,13 +126,13 @@ ALTER TABLE `Prenotazione escursione`
 ADD FOREIGN KEY (`codice escursione`) REFERENCES `Escursione`(`id`);
 
 CREATE TABLE `Composizione escursione` (
-`nome zona` 			CHAR(70) NOT NULL,
+`zona` 					CHAR(70) NOT NULL,
 `agriturismo` 			INT UNSIGNED NOT NULL,
 `escursione` 			INT UNSIGNED NOT NULL,
 `progressivo passaggio` TINYINT UNSIGNED NOT NULL,
 `tempo permanenza`	    SMALLINT UNSIGNED NOT NULL,
 
-PRIMARY KEY pk1(`nome zona`,`agriturismo`,`escursione`,`progressivo passaggio`)
+PRIMARY KEY pk1(`agriturismo`,`escursione`,`progressivo passaggio`),
 
 FOREIGN KEY (`escursione`) REFERENCES `Escursione`(`id`)
 );
@@ -148,7 +148,7 @@ FOREIGN KEY (`agriturismo`) REFERENCES `Agriturismo`(`id`)
 -- ALTER TABLE PER AGGIUNGERE IL RIFERIMENTO ALLA TABELLA prenotazione escursione
 -- precedentemente creata
 ALTER TABLE `Composizione escursione`
-ADD FOREIGN KEY (`nome zona`,agriturismo) REFERENCES `Escursione`(`nome`,agriturismo);
+ADD FOREIGN KEY (`zona`,agriturismo) REFERENCES `Escursione`(`nome`,agriturismo);
 
 
 CREATE TABLE `Transazione` (

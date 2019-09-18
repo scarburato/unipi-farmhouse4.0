@@ -31,9 +31,13 @@ CREATE TABLE `Animale`(
 	
 `sesso`						ENUM('Maschio', 'Femmina') NOT NULL,
 `altezza`					SMALLINT UNSIGNED  NOT NULL,
+`data di nascita`			DATE NOT NULL,
+`data di morte`				DATE NULL DEFAULT NULL,	
 
 `ultima quarantena`			DATE NULL,
 `fine ultima quarantena`	DATE NULL,
+
+`tipo`						ENUM('Acquistato', 'Nato in casa') NOT NULL,
 
 -- Controllo sulle date
 CONSTRAINT `chk_quarantena`
