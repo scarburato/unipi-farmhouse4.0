@@ -140,3 +140,85 @@ CONSTRAINT `parametro_fk2` FOREIGN KEY(`parametro`)
 CONSTRAINT `passo_ricetta_fk2` FOREIGN KEY (ricetta, `numero passo`) 
 	REFERENCES Passo(ricetta, `numero passo`)
 );
+
+CREATE TABLE `Cisterna`(
+`id` 					INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+`capacità`				DECIMAL(2,2) CHECK(`capacità` <> 0),
+`livello riempimento`	DECIMAL(2,2) ,
+
+
+
+CHECK(`livello riempimento` <= `capacità`)
+);
+CREATE TABLE `Mungitrice`(
+`id`     		INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+`modello`		CHAR (70) NOT NULL,
+`marca`			CHAR(70) NOT NULL,
+`posizione`		POINT,
+`proprietario` 	INT UNSIGNED NOT NULL,
+
+--  TO DO  collegare proprietario con agriturismo
+);
+CREATE TABLE `Prodotto mungitura`(
+`animale`		 BIGINT UNSIGNED,
+`timestamp`		 TIMESTAMP,
+`mungitrice`	 INT UNSIGNED NOT NULL,
+`quantità`		 DECIMAL(2,2),
+
+PRIMARY KEY  	pk1(`animale`,`timestamp`),
+-- TO DO  collegare animale a tab rossa
+
+FOREIGN KEY (`mungitrice`) REFERENCES Mungitrice(`id`)
+
+);
+CREATE TABLE `Sostanza latte`(
+`nome` VARCHAR(60) PRIMARY KEY,
+
+);
+CREATE TABLE `Composizione`(
+`animale munto` 		BIGINT UNSIGNED,
+`timestamp`  			TIMESTAMP,
+`sostanza latte` 		VARCHAR(60) NOT NULL,
+`quantita`				DECIMAL(2,2),
+
+
+FOREIGN KEY (`sostanza latte`) REFERENCES `Sostanze latte`(`nome`),
+
+FOREIGN KEY (`animale munto`,`timestamp`) REFERENCES `Prodotto mungitura`(`animale`,`timestamp`)
+
+);
+
+CREATE TABLE `Storico sensore cantina`(
+`timestamp`  			TIMESTAMP,
+`tipologia`	  			ENUM('Ventilazione','Temperatura','Umidità'),
+`locale stoccaggio`		INT UNSIGNED NOT NULL,
+`valore`				DOUBLE,
+
+PRIMARY KEY  pk1(`timestamp`,`tipologia`,`locale stoccaggio`)
+
+FOREIGN KEY (`tipologia`,`locale stoccaggio`) REFERENCES `Sensore cantina`(`tipologia`,`locale stoccaggio`),
+
+);
+CREATE TABLE `Sensore cantina`(
+`tipologia`				ENUM('Ventilazione','Temperatura','Umidità'),
+`locale stoccaggio`		INT UNSIGNED NOT NULL,
+
+PRIMARY KEY  pk1(`tipologia`,`locale stoccaggio`),
+
+FOREIGN KEY (`locale stoccaggio`) REFERENCES `Locale stoccaggio`(`id`)
+);
+CREATE TABLE `Locale stoccaggio`(
+`id`	INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+`tipo`	ENUM('Magazzino','Cantina')
+);
+
+CREATE TABLE `Scaffalatura`(
+`id`			INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+`locale`		INT UNSIGNED,
+`posizione`		INT,    -- TO DO da cambiare con x,y,z
+
+FOREIGN KEY (`locale`) REFERENCES `Locale stoccaggio`(`id`)
+);
+
+
+
