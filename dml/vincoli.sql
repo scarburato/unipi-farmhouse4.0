@@ -40,3 +40,15 @@ BEGIN
         SET MESSAGE_TEXT = 'Eccesso di 100%!';
     END IF;
 END;;
+
+/** I pascoli di un locale siano distanziati di 31 minuti **/
+CREATE PROCEDURE `chk_orario_pascolo` 
+(
+    IN  `orario`          TIME,
+    IN  `locale`          INT UNSIGNED,
+    OUT `vialibera`       BOOLEAN
+)
+READS SQL DATA
+BEGIN 
+    
+END;;

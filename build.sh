@@ -27,5 +27,8 @@ basedati < ./dml/ponti_aree.sql
 echo "Aggiunta vincoli aggiuntivi..."
 basedati < ./dml/vincoli.sql
 
+echo "Configurazione procedure ed automatismi di mantenimento delle ridodanze..."
+basedati < ./dml/ridondanze.sql
+
 echo "Terminato!"
 unalias basedati

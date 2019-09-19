@@ -8,11 +8,13 @@ CREATE TABLE `Stalla`(
 );
 
 CREATE TABLE `Locale`(
-`id`       	      INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-`stalla`          INT UNSIGNED NOT NULL,
+`id`                        INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+`stalla`                    INT UNSIGNED NOT NULL,
 
-`specie ammessa`  CHAR(70) NOT NULL,
-`pavimentazione`  CHAR(70) NOT NULL,
+`specie ammessa`            CHAR(70) NOT NULL,
+`pavimentazione`            CHAR(70) NOT NULL,
+
+`Ultimo pascolo avviato`    TIME NULL DEFAULT NULL,
 
 -- Chiave esterna a stalla
 FOREIGN KEY (stalla) REFERENCES Stalla(id)
@@ -185,17 +187,16 @@ CREATE TABLE `Storico posizioni`(
 `animale`                   BIGINT UNSIGNED NOT NULL,
 `timestamp`                 TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-`posizione`                 POINT /*SRID 4326*/ NOT NULL,
+`posizione`                 POINT SRID 4326 NOT NULL,
 
-`rientro pascolo: locale`   INT UNSIGNED NULL DEFAULT NULL,
-`rientro pascolo: ora`      TIME NULL DEFAULT NULL,
+`pascolo: locale`           INT UNSIGNED NOT NULL,
+`pascolo: ora`              TIME NOT NULL,
 
--- O tutto o niente!
-CHECK (NOT(`rientro pascolo: locale` IS NULL XOR `rientro pascolo: ora` IS NULL)),
+`rientro`                   BOOLEAN NOT NULL DEFAULT FALSE,
 
 PRIMARY KEY (animale, `timestamp`),
 
-FOREIGN KEY (`rientro pascolo: locale`, `rientro pascolo: ora`)
+FOREIGN KEY (`pascolo: locale`, `pascolo: ora`)
     REFERENCES Pascolo(`locale`, `ora inizio`)
 );
 
