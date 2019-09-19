@@ -165,7 +165,7 @@ FOREIGN KEY (`codice carta`) REFERENCES `Prenotazione stanze`(`utente`)
 
 );
 CREATE TABLE `Composizione ordine` (
-`forma di formaggio`            INT UNSIGNED PRIMARY KEY,       -- TO DO collegare con forma
+`forma di formaggio`            BIGINT UNSIGNED PRIMARY KEY, 
 `reso`                          BOOLEAN NOT NULL DEFAULT FALSE,
 `gradimento generale`           DECIMAL(5) UNSIGNED,  -- DA 0  A 5
 `conservazione`                 DECIMAL(5) UNSIGNED,

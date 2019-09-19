@@ -150,15 +150,15 @@ CREATE TABLE `Cisterna`(
 
 CHECK(`livello riempimento` <= `capacità`)
 );
+
 CREATE TABLE `Mungitrice`(
 `id`            INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 `modello`       CHAR (70) NOT NULL,
 `marca`         CHAR(70) NOT NULL,
 `posizione`     POINT,
 `proprietario`  INT UNSIGNED NOT NULL
-
---  TO DO  collegare proprietario con agriturismo
 );
+
 CREATE TABLE `Prodotto mungitura`(
 `munto`         BIGINT UNSIGNED,
 `timestamp`     TIMESTAMP,
@@ -166,7 +166,6 @@ CREATE TABLE `Prodotto mungitura`(
 `quantità`      DECIMAL(2,2),
 
 PRIMARY KEY     pk1(`munto`,`timestamp`),
--- TO DO  collegare animale a tab rossa
 
 FOREIGN KEY (`mungitrice`) REFERENCES Mungitrice(`id`)
 
