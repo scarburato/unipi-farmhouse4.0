@@ -107,7 +107,7 @@ CREATE TABLE `Composizione foraggio` (
 
 PRIMARY KEY (`tipo foraggio`, `tipo alimento`),
 
-FOREIGN KEY (`tipo foraggio`) REFERENCES `Tipo Foraggio`(nome),
+FOREIGN KEY (`tipo foraggio`) REFERENCES `Tipo foraggio`(nome),
 FOREIGN KEY (`tipo alimento`) REFERENCES `Tipo alimento`(nome)
 );
 
@@ -164,7 +164,7 @@ CREATE TABLE `Portale accesso pascolo` (
 `posizione`             POINT SRID 4326 NOT NULL, -- PRIMARY KEY,
 `zona pascolo`          INT UNSIGNED NOT NULL,
 
-FOREIGN KEY (`zona pascolo`) REFERENCES `Zona Pascolo`(id)
+FOREIGN KEY (`zona pascolo`) REFERENCES `Zona pascolo`(id)
 );
 
 CREATE TABLE `Pascolo`(
@@ -178,7 +178,7 @@ CHECK ( MINUTE(TIMEDIFF(`ora fine`, `ora inizio`)) > 30 ),
 PRIMARY KEY (locale, `ora inizio`),
 
 FOREIGN KEY (locale) REFERENCES Locale(id),
-FOREIGN KEY (`zona pascolo`) REFERENCES `Zona Pascolo`(id)
+FOREIGN KEY (`zona pascolo`) REFERENCES `Zona pascolo`(id)
 );
 
 CREATE TABLE `Storico posizioni`(
