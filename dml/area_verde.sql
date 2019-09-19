@@ -155,7 +155,7 @@ CREATE TABLE `Mungitrice`(
 `modello`		CHAR (70) NOT NULL,
 `marca`			CHAR(70) NOT NULL,
 `posizione`		POINT,
-`proprietario` 	INT UNSIGNED NOT NULL,
+`proprietario` 	INT UNSIGNED NOT NULL
 
 --  TO DO  collegare proprietario con agriturismo
 );
@@ -172,9 +172,9 @@ FOREIGN KEY (`mungitrice`) REFERENCES Mungitrice(`id`)
 
 );
 CREATE TABLE `Sostanza latte`(
-`nome` VARCHAR(60) PRIMARY KEY,
-
+`nome` VARCHAR(60) PRIMARY KEY
 );
+
 CREATE TABLE `Composizione`(
 `animale munto` 		BIGINT UNSIGNED,
 `timestamp`  			TIMESTAMP,
@@ -182,31 +182,12 @@ CREATE TABLE `Composizione`(
 `quantita`				DECIMAL(2,2),
 
 
-FOREIGN KEY (`sostanza latte`) REFERENCES `Sostanze latte`(`nome`),
+FOREIGN KEY (`sostanza latte`) REFERENCES `Sostanza latte`(`nome`),
 
 FOREIGN KEY (`animale munto`,`timestamp`) REFERENCES `Prodotto mungitura`(`animale`,`timestamp`)
 
 );
 
-CREATE TABLE `Storico sensore cantina`(
-`timestamp`  			TIMESTAMP,
-`tipologia`	  			ENUM('Ventilazione','Temperatura','Umidità'),
-`locale stoccaggio`		INT UNSIGNED NOT NULL,
-`valore`				DOUBLE,
-
-PRIMARY KEY  pk1(`timestamp`,`tipologia`,`locale stoccaggio`)
-
-FOREIGN KEY (`tipologia`,`locale stoccaggio`) REFERENCES `Sensore cantina`(`tipologia`,`locale stoccaggio`),
-
-);
-CREATE TABLE `Sensore cantina`(
-`tipologia`				ENUM('Ventilazione','Temperatura','Umidità'),
-`locale stoccaggio`		INT UNSIGNED NOT NULL,
-
-PRIMARY KEY  pk1(`tipologia`,`locale stoccaggio`),
-
-FOREIGN KEY (`locale stoccaggio`) REFERENCES `Locale stoccaggio`(`id`)
-);
 CREATE TABLE `Locale stoccaggio`(
 `id`	INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 `tipo`	ENUM('Magazzino','Cantina')
@@ -215,9 +196,32 @@ CREATE TABLE `Locale stoccaggio`(
 CREATE TABLE `Scaffalatura`(
 `id`			INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 `locale`		INT UNSIGNED,
+
+/** URGENTE PENSARE A COME IMPLEMENTARE ORA!! */
 `posizione`		INT,    -- TO DO da cambiare con x,y,z
 
 FOREIGN KEY (`locale`) REFERENCES `Locale stoccaggio`(`id`)
+);
+
+CREATE TABLE `Sensore cantina`(
+`tipologia`				ENUM('Ventilazione','Temperatura','Umidità'),
+`locale stoccaggio`		INT UNSIGNED NOT NULL,
+
+PRIMARY KEY  pk1(`tipologia`,`locale stoccaggio`),
+
+FOREIGN KEY (`locale stoccaggio`) REFERENCES `Locale stoccaggio`(`id`)
+);
+
+CREATE TABLE `Storico sensore cantina`(
+`timestamp`  			TIMESTAMP,
+`tipologia`	  			ENUM('Ventilazione','Temperatura','Umidità'),
+`locale stoccaggio`		INT UNSIGNED NOT NULL,
+`valore`				DOUBLE,
+
+PRIMARY KEY  pk1(`timestamp`,`tipologia`,`locale stoccaggio`),
+
+FOREIGN KEY (`tipologia`,`locale stoccaggio`) REFERENCES `Sensore cantina`(`tipologia`,`locale stoccaggio`)
+
 );
 
 

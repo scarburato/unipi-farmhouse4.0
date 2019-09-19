@@ -45,7 +45,7 @@ CREATE TABLE `Prenotazione stanze` (
 `data partenza` 			DATE NOT NULL,
 `timestamp prenotazione` 	TIMESTAMP NOT NULL,
 
-PRIMARY KEY 				pk1(`data arrivo`,`utente`),
+PRIMARY KEY 				pk1(`data arrivo`,`utente`)
 
 );
 
@@ -101,7 +101,7 @@ CREATE TABLE `Utente registrato` (
 `indirizzo`		VARCHAR(100) NOT NULL,
 `codice documento` CHAR(20) NOT NULL,
 
---Chiave esterna utente riferita a Utente
+-- Chiave esterna utente riferita a Utente
 FOREIGN KEY (utente) REFERENCES `Utente`(`codice carta`)
 );
  
@@ -111,8 +111,8 @@ CREATE TABLE `Prenotazione escursione` (
 
 PRIMARY KEY(`codice utente`,`codice escursione`),
 
---Chiave esterna utente riferita a Utente
-FOREIGN KEY (utente) REFERENCES `Utente`(`codice carta`)
+-- Chiave esterna utente riferita a Utente
+FOREIGN KEY (`codice utente`) REFERENCES `Utente`(`codice carta`)
 );
 
 CREATE TABLE `Escursione` (
@@ -148,7 +148,7 @@ FOREIGN KEY (`agriturismo`) REFERENCES `Agriturismo`(`id`)
 -- ALTER TABLE PER AGGIUNGERE IL RIFERIMENTO ALLA TABELLA prenotazione escursione
 -- precedentemente creata
 ALTER TABLE `Composizione escursione`
-ADD FOREIGN KEY (`zona`,agriturismo) REFERENCES `Escursione`(`nome`,agriturismo);
+ADD FOREIGN KEY (`zona`,agriturismo) REFERENCES `Zona`(`nome`,agriturismo);
 
 
 CREATE TABLE `Transazione` (
@@ -156,40 +156,29 @@ CREATE TABLE `Transazione` (
 `data arrivo`					DATE NOT NULL,
 `codice carta`					CHAR(16) NOT NULL,
 `importo`						DECIMAL(4,2) NOT NULL,
-`indirizzo fatturazione`		VARCHAR NOT NULL,
+`indirizzo fatturazione`		VARCHAR(100) NOT NULL,
 
-PRIMARY KEY         pk1(`timestamp transazionale`,`data arrivo`,`codice carta`),
+PRIMARY KEY (`timestamp transazionale`,`data arrivo`,`codice carta`),
 
 FOREIGN KEY (`data arrivo`) REFERENCES `Prenotazione stanze`(`data arrivo`),
-
 FOREIGN KEY (`codice carta`) REFERENCES `Prenotazione stanze`(`utente`)
 
 );
 CREATE TABLE `Composizione ordine` (
-`forma di formaggio`			INT UNSIGNED PRIMARY KEY,       --TO DO collegare con forma
+`forma di formaggio`			INT UNSIGNED PRIMARY KEY,       -- TO DO collegare con forma
 `reso`							BOOLEAN NOT NULL DEFAULT FALSE,
 `gradimento generale`			DECIMAL(5) UNSIGNED,  -- DA 0  A 5
 `conservazione`					DECIMAL(5) UNSIGNED,
 `qualità percepita`				DECIMAL(5) UNSIGNED,
 `gusto`							DECIMAL(5) UNSIGNED,
-`codice ordine acquisto`		INT UNSIGNED,
-);
-
-CREATE TABLE `Documento` (
-`utente store` 			CHAR(16) PRIMARY KEY ,
-`tipologia`    			VARCHAR NOT NULL,
-`data scadenza` 		DATE NOT NULL,
-`ente`  				CHAR(20) NOT NULL,
-
-FOREIGN KEY (`utente store`) REFERENCES `Utente store`(`codice fiscale`)
-
+`codice ordine acquisto`		INT UNSIGNED NOT NULL
 );
 
 CREATE TABLE `Credenziali` (
 `nome utente`   		CHAR(50) PRIMARY KEY ,
 `risposta`				TEXT NOT NULL,
 `domanda segreta`		TEXT NOT NULL,
-`parola d ordine`		CHAR(100) NOT NULL
+`parola d'ordine`		CHAR(100) NOT NULL
 );
 
 CREATE TABLE `Utente store` (
@@ -197,16 +186,26 @@ CREATE TABLE `Utente store` (
 `cognome`      		 	CHAR(50) NOT NULL,
 `nome`					CHAR(50) NOT NULL,
 `recapito telefonico`	CHAR(35) CHECK (`recapito telefonico` REGEXP '\\+[0-9]{1,3}-[0-9()+\\-]{1,30}'), /* In conformità a ISO 20022 */
-`data iscrizione`		DATE() NOT NULL,
+`data iscrizione`		DATE NOT NULL,
 `indirizzo`				VARCHAR(150) NOT NULL,
 `credenziali`			CHAR(50) NOT NULL,
 
 FOREIGN KEY (`credenziali`) REFERENCES `Credenziali`(`nome utente`)
 );
+
+CREATE TABLE `Documento` (
+`utente store` 			CHAR(16) PRIMARY KEY ,
+`tipologia`    			VARCHAR(70) NOT NULL,
+`data scadenza` 		DATE NOT NULL,
+`ente`  				CHAR(20) NOT NULL,
+
+FOREIGN KEY (`utente store`) REFERENCES `Utente store`(`codice fiscale`)
+);
+
 CREATE TABLE `Ordine acquisto` (
 `codice ordine` 		INT UNSIGNED PRIMARY KEY ,
 `utente store` 			CHAR(16) NOT NULL,
-`codice spedizione`		INT UNSIGNED,
+`codice spedizione`		INT UNSIGNED 
 -- `stato`  ENUM(), ????
 
 );
@@ -215,7 +214,7 @@ CREATE TABLE `HUB` (
 );
 
 CREATE TABLE `Spedizione` (
-`codice`	INT UNSIGNED PRIMARY KEY AUTO_INCREMENT
+`codice`	INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 `stato`		ENUM('Spedito','In transito','In consegna','Consegnato') NOT NULL DEFAULT 'Spedito',
 `data consegna stimata`    DATE NOT NULL
 );

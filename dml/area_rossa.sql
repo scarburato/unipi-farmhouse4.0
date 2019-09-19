@@ -94,7 +94,7 @@ CREATE TABLE `Tentativo di riproduzione`(
 `data`					DATE NOT NULL,
 
 `padre`					BIGINT UNSIGNED NOT NULL,
-`stato`					ENUM('Successo', 'Insuccesso') NOT NULL,
+`stato`					ENUM('Pendente', 'Successo', 'Insuccesso') NOT NULL,
 
 `veterinario`			INT UNSIGNED NOT NULL,
 
@@ -145,7 +145,11 @@ CREATE TABLE `Programmazione visita di controllo`(
 `data concepimento`				DATE NOT NULL,
 
 `visita di controllo`			BIGINT UNSIGNED NULL DEFAULT NULL,
-`esito`							ENUM('Negativo', 'Positivo') NULL DEFAULT NULL,
+`esito`							ENUM('Pendente', 'Negativo', 'Positivo') NOT NULL DEFAULT 'Pendente',
+
+-- È pendente se e solo se visita è null
+CONSTRAINT `chk_esito_prgm_vist_contr` 
+	CHECK (`visita di controllo` IS NULL XOR `esito` <> 'Pendente'),
 
 -- Chiave primaria
 PRIMARY KEY pk1(`data visita programmata`, madre, `data concepimento`),
