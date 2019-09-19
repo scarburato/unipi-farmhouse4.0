@@ -77,7 +77,7 @@ CREATE TABLE `Storico mangiatoia`(
 `timestamp`           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 `mangiatoia`          INT UNSIGNED NOT NULL,
 
-`livello`             TINYINT UNSIGNED NOT NULL CHECK(`livello` BETWEEN 0 AND 100),
+`livello`             DECIMAL(3,2) UNSIGNED NOT NULL CHECK(`livello` BETWEEN 0 AND 100),
 `tipo conservazione`  ENUM ('Fresco', 'Fieno', 'Insilato') NOT NULL,
 `tipo foraggio`       CHAR(70) NOT NULL,
 
@@ -91,9 +91,9 @@ CREATE TABLE `Tipo alimento`(
 `nome`                  CHAR (70) PRIMARY KEY,              
 
 `fattore di energia`    DOUBLE NOT NULL CHECK(`fattore di energia` > 0),
-`fibra`                 TINYINT UNSIGNED NOT NULL CHECK(`fibra`     BETWEEN 0 AND 100),
-`proteine`              TINYINT UNSIGNED NOT NULL CHECK(`proteine`  BETWEEN 0 AND 100),
-`glucidi`               TINYINT UNSIGNED NOT NULL CHECK(`glucidi`   BETWEEN 0 AND 100),
+`fibra`                 DECIMAL(3,2) UNSIGNED NOT NULL CHECK(`fibra`     BETWEEN 0 AND 100),
+`proteine`              DECIMAL(3,2) UNSIGNED NOT NULL CHECK(`proteine`  BETWEEN 0 AND 100),
+`glucidi`               DECIMAL(3,2) UNSIGNED NOT NULL CHECK(`glucidi`   BETWEEN 0 AND 100),
 
 -- Controllo composizione sia 100%
 CHECK(fibra + proteine + glucidi = 1)
@@ -103,7 +103,7 @@ CREATE TABLE `Composizione foraggio` (
 `tipo foraggio`         CHAR (70) NOT NULL,
 `tipo alimento`         CHAR (70) NOT NULL,
 
-`quantità`              TINYINT UNSIGNED NOT NULL CHECK(`quantità` > 0 AND `quantità` <= 100),
+`quantità`              DECIMAL(3,2) UNSIGNED NOT NULL CHECK(`quantità` > 0 AND `quantità` <= 100),
 
 PRIMARY KEY (`tipo foraggio`, `tipo alimento`),
 
