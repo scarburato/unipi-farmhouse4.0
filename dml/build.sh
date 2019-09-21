@@ -10,25 +10,25 @@ mysql -e "DROP DATABASE IF EXISTS $DATABASE_NAME"
 mysql -e "CREATE DATABASE $DATABASE_NAME CHARACTER SET utf8 COLLATE utf8_unicode_ci"
 
 echo "Costruisco area servizi..."
-basedati < ./dml/area_blu.sql
+basedati < ./area_blu.sql
 
 echo "Costruisco area stalle  ..."
-basedati < ./dml/area_gialla.sql
+basedati < ./area_gialla.sql
 
 echo "Costruisco area animali..."
-basedati < ./dml/area_rossa.sql
+basedati < ./area_rossa.sql
 
 echo "Costruisco area produzione..."
-basedati < ./dml/area_verde.sql
+basedati < ./area_verde.sql
 
 echo "Costruzione delle chiavi esterne e dei vincoli tra le frontiere...."
-basedati < ./dml/ponti_aree.sql
+basedati < ./ponti_aree.sql
 
 echo "Aggiunta vincoli aggiuntivi..."
-basedati < ./dml/vincoli.sql
+basedati < ./vincoli.sql
 
 echo "Configurazione procedure ed automatismi di mantenimento delle ridodanze..."
-basedati < ./dml/ridondanze.sql
+basedati < ./ridondanze.sql
 
 echo "Terminato!"
 unalias basedati

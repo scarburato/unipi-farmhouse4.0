@@ -4,7 +4,7 @@ Scrip DML per l'areaea BLU
 
 CREATE TABLE `Agriturismo` (
 `id`                           INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-`Nominativo`                   VARCHAR(100)
+`nominativo`                   VARCHAR(100)
 );  
 
 CREATE TABLE `Tipologia letto`(
@@ -28,7 +28,7 @@ CREATE TABLE `Composizione stanze` (
 `agriturismo`            INT UNSIGNED NOT NULL,
 `numero stanza`          INT UNSIGNED NOT NULL,
 `tipo`                   CHAR(70) NOT NULL,
-`quantità`               TINYINT NOT NULL CHECK(`quantità` >=1),
+`quantità`               TINYINT NOT NULL CHECK(`quantità` >= 1),
   
 PRIMARY KEY              pk1(`numero stanza`,`tipo`,`agriturismo`),
   
@@ -205,10 +205,14 @@ FOREIGN KEY (`utente store`) REFERENCES `Utente store`(`codice fiscale`)
 CREATE TABLE `Ordine acquisto` (
 `codice ordine`         INT UNSIGNED PRIMARY KEY ,
 `utente store`          CHAR(16) NOT NULL,
-`codice spedizione`     INT UNSIGNED 
--- `stato`  ENUM(), ????
+`codice spedizione`     INT UNSIGNED NULL DEFAULT NULL,
 
+`stato`                 ENUM('In processazione', 'In preparazione', 'Spedito', 'Eveso') NOT NULL DEFAULT 'In processazione'
+
+-- Controllo se è veramente spedito
+CHECK (NOT (stato = 'Spedito' XOR `codice spedizione` IS NOT NULL))
 );
+
 CREATE TABLE `HUB` (
 `id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT
 );
@@ -229,3 +233,53 @@ FOREIGN KEY (`codice spedizione`) REFERENCES `Spedizione`(`codice`),
 FOREIGN KEY (`hub`) REFERENCES `HUB`(`id`)
 );
 
+/********************************************************************
+ *                      
+ *                          FUNZIONI
+ *
+ ********************************************************************/
+DELIMITER ;;
+CREATE FUNCTION `getImportoPrenotazione`(
+    dataP           DATE,
+    utenteP         CHAR(16)
+)
+RETURNS DECIMAL(5,2)
+COMMENT 'Data una prenotazione ne calcola l\'importo dovuto'
+DETERMINISTIC READS SQL DATA 
+BEGIN
+    DECLARE giorni      SMALLINT UNSIGNED DEFAULT 0;
+    DECLARE costoStanze DECIMAL(5,2) DEFAULT 0;
+    DECLARE costoServizi DECIMAL(5,2) DEFAULT 0;
+    
+    -- Calcolo il numero di giorni del soggiorno
+    SET giorni = (
+        SELECT datediff(`data partenza`, `data arrivo`)
+        FROM `Prenotazione stanze` PSE
+        WHERE PSE.`utente` = utenteP AND PSE.`data arrivo` = dataP
+    );
+    
+    -- Se la interrogazione sopra ha dato resSet vuoto, quindi ha messo a NULL giorni, allora errore
+    IF giorni IS NULL
+    THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Prenotazione inesistente!';
+    END IF;
+    
+    -- Costo stanze 
+    SET costoStanze = IFNULL((
+        SELECT SUM(S.`prezzo pernottamento`) * giorni
+        FROM `Prenotazione stanza` PSA
+            INNER JOIN Stanza S ON S.`numero stanza` = PSA.`numero stanza` AND S.agriturismo = PSA.agriturismo
+        WHERE PSA.`utente` = utenteP AND PSA.`data arrivo` = dataP
+    ), 0);
+    
+    -- Costo servizi; non è necessario sapare i giorni perché il servizio è prenotato per un giorno.
+    SET costoServizi = IFNULL((
+        SELECT SUM(S.prezzo)
+        FROM `Prenotazione servizio` PSO
+            INNER JOIN `Servizio aggiuntivo` S ON S.nome = PSO.`servizio aggiuntivo`
+        WHERE PSO.`utente` = utenteP AND PSO.`data arrivo` = dataP
+    ), 0);
+    
+    RETURN costoStanze + costoServizi;
+END;;

@@ -40,7 +40,7 @@ CREATE TABLE `Prodotto caseario`(
 
 CREATE TABLE `Ricetta`(
 `prodotto caseario`         CHAR(70) NOT NULL PRIMARY KEY,
-`stagionatura`              BOOLEAN NOT NULL,
+`stagionatura`              INT UNSIGNED NOT NULL DEFAULT 0,
 `zona geografica`           TEXT NOT NULL,
 
 CONSTRAINT `prodotto_caseario_fk1` FOREIGN KEY (`prodotto caseario`) REFERENCES `Prodotto caseario`(nome)

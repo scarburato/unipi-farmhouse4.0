@@ -121,7 +121,8 @@ CREATE TABLE `Gestazione`
 `veterinario`           INT UNSIGNED NOT NULL,
 `visita dopo aborto`    BIGINT UNSIGNED NULL DEFAULT NULL,
 
--- CONSTRAINT `chk_stato_aborto` CHECK ('')
+CONSTRAINT `chk_stato_aborto` 
+    CHECK (NOT(`stato` = 'Interrotta') XOR `visita dopo aborto` IS NOT NULL),
 
 -- Chiave primari
 PRIMARY KEY pk1(`madre`, `data concepimento`),
@@ -149,7 +150,7 @@ CREATE TABLE `Programmazione visita di controllo`(
 
 -- È pendente se e solo se visita è null
 CONSTRAINT `chk_esito_prgm_vist_contr` 
-    CHECK (`visita di controllo` IS NULL XOR `esito` <> 'Pendente'),
+    CHECK (NOT (`visita di controllo` IS NOT NULL XOR `esito` <> 'Pendente')),
 
 -- Chiave primaria
 PRIMARY KEY pk1(`data visita programmata`, madre, `data concepimento`),
@@ -201,16 +202,12 @@ ALTER TABLE `Programmazione visita di controllo` ADD CONSTRAINT `effettuazione v
     FOREIGN KEY (`visita di controllo`) REFERENCES `Visita di controllo`(id);
 
 CREATE TABLE `Indicatore`(
-`nome`                          CHAR(100) PRIMARY KEY,
+`nome`                         CHAR(100) PRIMARY KEY,
 `unità di misura`              CHAR(50) NOT NULL,
-`tipo`                          ENUM('Oggettivo', 'Soggettivo', 'Lesione') NOT NULL,
-`parte del corpo`               VARCHAR(200) NULL,
+`tipo`                         ENUM('Oggettivo', 'Soggettivo', 'Lesione') NOT NULL,
+`parte del corpo`              VARCHAR(200) NULL,
 
-CONSTRAINT `chk_ind_partcorp` 
-    CHECK (
-        tipo != 'Oggettivo' XOR 
-        (tipo = 'Ogettivo' AND `parte del corpo` IS NOT NULL)
-    )
+CONSTRAINT `chk_ind_partcorp`  CHECK ( NOT( `tipo` = 'Lesione' XOR `parte del corpo` IS NOT NULL ) )
 );
 
 CREATE TABLE `Rilevazione`(

@@ -20,18 +20,24 @@ CREATE PROCEDURE `insert_posizione_animale`
 (
     IN animale                  BIGINT UNSIGNED,
     
-    IN latitudine               DOUBLE,
-    IN longitudine              DOUBLE,
+    IN latitudine               CHAR(20),
+    IN longitudine              CHAR(20),
     
     IN ultimoPascoloLocale      INT UNSIGNED,
     IN ultimoPascoloOra         TIME,
     
     IN forceDifferentTime       TIMESTAMP
 )
-READS SQL DATA
+MODIFIES SQL DATA
 BEGIN
     DECLARE uscito BOOLEAN DEFAULT FALSE;
     DECLARE tempo  TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+    DECLARE posGPS POINT;
+    
+    -- Imposto il sistema di rifermento a coordinate geografiche del GPS
+    
+    -- Importo il valore inviato dal sensore alla base dati
+    SET posGPS = ST_PointFromText(concat('POINT(',latitudine,' ', longitudine, ')'), 4326);
     
     IF animale IS NULL OR latitudine IS NULL OR longitudine IS NULL 
     THEN
@@ -45,7 +51,6 @@ BEGIN
     END IF;
     
     -- Se l'ultimo pascolo non è stato passato allora lo calcolo (da Locale)
-    
     
     -- Controllo se sono passsato per un varco
     

@@ -215,3 +215,100 @@ PRIMARY KEY (macchina, specie),
 
 FOREIGN KEY (macchina) REFERENCES Macchina(nome)
 );
+
+/********************************************************************
+ *                      
+ *                          FUNZIONI
+ *
+ ********************************************************************/
+DELIMITER ;;
+CREATE FUNCTION `capacitàMassima` (`locale` INT UNSIGNED)
+RETURNS SMALLINT UNSIGNED 
+COMMENT 'Computa la capacità massima'
+DETERMINISTIC READS SQL DATA
+BEGIN
+    RETURN (
+        SELECT FLOOR(PL.larghezza * PL.lunghezza * S.`fattore di capacità`)
+        FROM `Locale` L
+            INNER JOIN `Posizione locale` PL ON PL.locale = L.id
+            INNER JOIN `Specie` S ON S.nome = L.`specie ammessa`
+        WHERE 
+            L.id = locale
+    );
+END;;
+
+CREATE FUNCTION `energia` (`foraggio` CHAR (70), `peso` DOUBLE)
+RETURNS DOUBLE 
+COMMENT 'Computa i joule per grammo cioè il chilo-joule per chilo-grammo'
+DETERMINISTIC READS SQL DATA
+BEGIN
+    RETURN peso * (
+        SELECT IFNULL(SUM(TA.`fattore di energia` * (C.`quantità`/100.0)), 0)
+        FROM `Composizione foraggio` C
+            INNER JOIN `Tipo alimento` TA ON TA.nome = C.`tipo alimento`
+        WHERE C.`tipo foraggio` = foraggio
+    );
+END;;
+ 
+DELIMITER ;
+
+/********************************************************************
+ *                      
+ *                         AUTOMATISMI
+ *
+ ********************************************************************/
+DELIMITER ;;
+CREATE TRIGGER `sensore_locale_valore_soglia`
+AFTER INSERT ON `Storico sensore` FOR EACH ROW
+rowss: BEGIN 
+    DECLARE soglia DOUBLE DEFAULT NULL;
+    DECLARE ultimo TIMESTAMP DEFAULT NULL;
+    DECLARE localeS INT UNSIGNED;
+    
+    -- Il valore soglia del sensore
+    SET soglia = (
+        SELECT T.`valore soglia`
+        FROM `Tipo sensore` T
+            INNER JOIN `Sensore` S ON S.tipo = T.nome
+        WHERE
+            S.id = NEW.sensore
+    );
+    
+    -- Se non è un sensore di igene esco
+    IF soglia IS NULL
+    THEN
+        LEAVE rowss;
+    END IF;
+    
+    -- Locale del sensore
+    SET localeS = (
+        SELECT S.locale
+        FROM Sensore S
+        WHERE S.id = NEW.sensore
+    );
+    
+    -- Ulitma richiesta pendente
+    SET ultimo =  (
+        SELECT RP.`timestamp`
+        FROM `Richiesta di pulizia` RP
+        WHERE 
+            RP.locale = localeS AND
+            RP.stato = 'Richiesto'
+    );
+
+    -- Se l'ultima non esiste allora inserisco
+    IF (ultimo IS NULL)
+    THEN
+        INSERT INTO `Richiesta di pulizia`(`timestamp`, `locale`)
+            VALUES (NEW.`timestamp`, localeS);
+    -- altrimenti ne creo una
+    ELSE
+        UPDATE `Richiesta di pulizia` RP 
+        SET RP.`timestamp` = NEW.`timestamp`
+        WHERE 
+            RP.`stato` = 'Richiesto' AND
+            RP.locale = localeS;
+    END IF;
+END;;
+
+DELIMITER ;
