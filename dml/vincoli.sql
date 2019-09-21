@@ -568,7 +568,7 @@ BEGIN
     IF (
         SELECT A.sesso <> 'Femmina'
         FROM Animale A
-        WHERE A.id = NEW.animale
+        WHERE A.id = NEW.`munto`
     ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'È vietato mungere animale di sesso maschile!!';
@@ -685,14 +685,14 @@ rowss: BEGIN
 END;;
 
 CREATE TRIGGER `chk_letti_stanza_semplice_UPDATE`
-BEFORE INSERT ON `Composizione stanze` FOR EACH ROW
+BEFORE UPDATE ON `Composizione stanze` FOR EACH ROW
 BEGIN
     IF(
         -- Il valore quantità è stato modificato
         NEW.`quantità` <> OLD.`quantità` AND
         
         -- Il valore è diverso da uno
-        NEW.`quanità` <> 1 AND
+        NEW.`quantità` <> 1 AND
         
         -- È una semplice
         (
@@ -721,7 +721,7 @@ BEGIN
 END;;
 
 CREATE TRIGGER `chk_sensori_cantina_UPDATE`
-BEFORE INSERT ON `Sensore cantina` FOR EACH ROW
+BEFORE UPDATE ON `Sensore cantina` FOR EACH ROW
 BEGIN
     IF NEW.`locale stoccaggio` <> OLD.`locale stoccaggio` AND NOT (
         SELECT L.tipo = 'Cantina'

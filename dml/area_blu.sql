@@ -207,7 +207,7 @@ CREATE TABLE `Ordine acquisto` (
 `utente store`          CHAR(16) NOT NULL,
 `codice spedizione`     INT UNSIGNED NULL DEFAULT NULL,
 
-`stato`                 ENUM('In processazione', 'In preparazione', 'Spedito', 'Eveso') NOT NULL DEFAULT 'In processazione'
+`stato`                 ENUM('In processazione', 'In preparazione', 'Spedito', 'Eveso') NOT NULL DEFAULT 'In processazione',
 
 -- Controllo se è veramente spedito
 CHECK (NOT (stato = 'Spedito' XOR `codice spedizione` IS NOT NULL))
