@@ -115,9 +115,17 @@ PRIMARY KEY(`codice utente`,`codice escursione`),
 FOREIGN KEY (`codice utente`) REFERENCES `Utente`(`codice carta`)
 );
 
+CREATE TABLE `Guida`(
+`codice`			INT UNSIGNED PRIMARY KEY,
+`nome`				VARCHAR(100) NOT NULL,
+`cognome`			VARCHAR(100) NOT NULL
+);
 CREATE TABLE `Escursione` (
 `id`                    INT UNSIGNED PRIMARY KEY,
-`inizio escursione`     TIMESTAMP
+`inizio escursione`     TIMESTAMP,
+`guida`					INT UNSIGNED,
+
+FOREIGN KEY (guida) REFERENCES `Guida`(`codice`)
 );
 
 -- ALTER TABLE PER AGGIUNGERE IL RIFERIMENTO ALLA TABELLA prenotazione escursione
@@ -157,6 +165,7 @@ CREATE TABLE `Transazione` (
 `codice carta`                  CHAR(16) NOT NULL,
 `importo`                       DECIMAL(4,2) NOT NULL,
 `indirizzo fatturazione`        VARCHAR(100) NOT NULL,
+`tipo pagamento`				ENUM('Contanti','Carta di credito','Carta di debito'),
 
 PRIMARY KEY (`timestamp transazionale`,`data arrivo`,`codice carta`),
 
@@ -200,6 +209,16 @@ CREATE TABLE `Documento` (
 `ente`                  CHAR(20) NOT NULL,
 
 FOREIGN KEY (`utente store`) REFERENCES `Utente store`(`codice fiscale`)
+);
+
+CREATE TABLE `Carrello`(
+`ordine`					INT UNSIGNED,
+`nome prodotto caseario`		CHAR(70),
+`quantità`					TINYINT NOT NULL CHECK(`quantità` >= 1),
+
+PRIMARY KEY  pk1(`ordine`,`nome prodotto caseare`),
+
+FOREIGN KEY (`ordine`) REFERENCES `Ordine acquisto`(`codice ordine`)
 );
 
 CREATE TABLE `Ordine acquisto` (
