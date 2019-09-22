@@ -1,5 +1,5 @@
 /*
-Scrip DML per l'areaea BLU
+Scrip DDL per l'areaea BLU
 */
 
 CREATE TABLE `Agriturismo` (

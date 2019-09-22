@@ -1,5 +1,5 @@
 /*
-Scrip DML per l'areaea GIALLA
+Scrip DDL per l'areaea GIALLA
 */
 
 CREATE TABLE `Stalla`(
@@ -175,7 +175,7 @@ CREATE TABLE `Pascolo`(
 `ora fine`              TIME NOT NULL,
 `zona pascolo`          INT UNSIGNED NOT NULL,
 
-CHECK ( MINUTE(TIMEDIFF(`ora fine`, `ora inizio`)) > 30 ),
+CHECK ( TIME_TO_SEC(TIMEDIFF(`ora fine`, `ora inizio`))/60.0 > 30 ),
 
 PRIMARY KEY (locale, `ora inizio`),
 

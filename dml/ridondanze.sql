@@ -20,8 +20,7 @@ CREATE PROCEDURE `insert_posizione_animale`
 (
     IN animale                  BIGINT UNSIGNED,
     
-    IN latitudine               CHAR(20),
-    IN longitudine              CHAR(20),
+    IN posizione                POINT,
     
     IN ultimoPascoloLocale      INT UNSIGNED,
     IN ultimoPascoloOra         TIME,
@@ -32,14 +31,9 @@ MODIFIES SQL DATA
 BEGIN
     DECLARE uscito BOOLEAN DEFAULT FALSE;
     DECLARE tempo  TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-    DECLARE posGPS POINT;
+    DECLARE posGPS POINT;    
     
-    -- Imposto il sistema di rifermento a coordinate geografiche del GPS
-    
-    -- Importo il valore inviato dal sensore alla base dati
-    SET posGPS = ST_PointFromText(concat('POINT(',latitudine,' ', longitudine, ')'), 4326);
-    
-    IF animale IS NULL OR latitudine IS NULL OR longitudine IS NULL 
+    IF animale IS NULL OR posizione IS NULL
     THEN
         SIGNAL SQLSTATE '45000' 
         SET MESSAGE_TEXT = 'Alcuni paramatri non possono essere null!';
@@ -55,6 +49,8 @@ BEGIN
     -- Controllo se sono passsato per un varco
     
     -- Inserisco nella base allora
+    INSERT INTO `Storico posizioni`(`animale`,`timestamp`,`posizione`,`pascolo: locale`,`pascolo: ora`) VALUES
+        (animale, tempo, posizione, ultimoPascoloLocale, ultimoPascoloOra);
 
 END;;
 

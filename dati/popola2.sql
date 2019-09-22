@@ -3,13 +3,60 @@ INSERT INTO Agriturismo(id, nominativo) VALUES
 (2, 'Cooperativa agraria di Vicopisano'),
 (3, 'Consorzio degli allevatori della Maremma');
 
+INSERT INTO Stalla(id, agriturismo)VALUES
+(1, 3);
+
+INSERT INTO Specie(`nome`, `fattore di capacità`, `famiglia`)VALUES
+('Bos taurus', 0.5, 'Bovini');
+
+INSERT INTO Razza(specie, nome) VALUES
+('Bos taurus', 'Simmental'),
+('Bos taurus', 'Bavarese');
+
+INSERT INTO Locale(`id`, stalla, `specie ammessa`, `pavimentazione`)VALUES
+(1, 1, 'Bos taurus', 'Terra');
+
+INSERT INTO `Posizione locale`(locale, orientamento, lunghezza, larghezza) VALUES
+(1, 'Nord', 100, 8);
+
+INSERT INTO Animale(`id`, `specie`, `razza`, `locale`, `sesso`, `altezza`, `data di nascita`, `tipo`) VALUES
+(1,  'Bos taurus', 'Bavarese', 1, 'Femmina', 100, '2018-01-01', 'Acquistato'),
+(2,  'Bos taurus', 'Bavarese', 1, 'Femmina', 85, '2018-01-01', 'Acquistato'),
+(3,  'Bos taurus', 'Bavarese', 1, 'Femmina', 90, '2018-11-01', 'Acquistato'),
+(4,  'Bos taurus', 'Bavarese', 1, 'Femmina', 93, '2019-05-01', 'Nato in casa');
+
+DELIMITER ;;
+CREATE PROCEDURE `popolaAnimali`()
+MODIFIES SQL DATA
+BEGIN
+    DECLARE nAnimali        INT UNSIGNED DEFAULT 60;
+    DECLARE i               INT UNSIGNED DEFAULT 0;
+    
+    WHILE i < nAnimali DO
+        INSERT INTO 
+            Animale(`specie`, `razza`, `locale`, `sesso`, `altezza`, `data di nascita`, `tipo`) VALUES
+                ('Bos taurus', 'Bavarese', 1, 'Femmina', 
+                80 + (RAND()*1000)%40,
+                '2017-01-01' + INTERVAL ((RAND() * 10e10) % 65072000) SECOND,
+                'Nato in casa'
+                );
+        SET i = i + 1;
+    END WHILE;
+END;;
+
+CALL popolaAnimali();;
+
+DROP PROCEDURE popolaAnimali;;
+
+DELIMITER ;
+
 INSERT INTO `Zona pascolo` (`proprietà`, `confine`) VALUES
 (3, ST_PolygonFromText(
     'POLYGON((
         42.741840 11.0249000,
-        42.746280 11.0249000,
-        42.746280 11.0179000,
-        42.741840 11.0179000,
+        42.756280 11.0249000,
+        42.756280 11.0009000,
+        42.741840 11.0009000,
         42.741840 11.0249000
     ))', 4326)),
 (1, ST_PolygonFromText(
@@ -33,6 +80,9 @@ INSERT INTO `Zona pascolo` (`proprietà`, `confine`) VALUES
         43.71704058069942 10.49036654597271,
         43.72170801611923 10.49095183607004
     ))', 4326) );
+    
+INSERT INTO `Pascolo`(locale, `ora inizio`, `ora fine`, `zona pascolo`) VALUES
+(1, '08:00:00', '11:30:00', 1);
     
 -- Test area illegale 
 /*

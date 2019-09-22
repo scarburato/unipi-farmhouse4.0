@@ -1,5 +1,5 @@
 /*
-Scrip DML per l'areaea verde
+Scrip DDL per l'areaea verde
 */
 
 CREATE TABLE `Dipendente area produzione`(
@@ -12,7 +12,7 @@ CREATE TABLE `Lotto`
 `agriturismo`       INT UNSIGNED NOT NULL,
 
 `data di scadenza`  DATE NOT NULL,
-`laboratorio`       INT UNSIGNED, -- TODO CONTROLLA STA ROBA!!
+`laboratorio`       VARCHAR(100),
 
 `durata processo produttivo` INT UNSIGNED NOT NULL,
 

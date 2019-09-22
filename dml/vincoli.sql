@@ -56,12 +56,11 @@ END;;
 CREATE TRIGGER `chk_animale_locale_INSERT`
 BEFORE INSERT ON `Animale` FOR EACH ROW
 BEGIN
-    IF(
+    IF NOT(
         SELECT NEW.specie = L.`specie ammessa`
         FROM Locale L
         WHERE L.id = NEW.locale
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'La specie non è ammessa';
     END IF;
@@ -71,8 +70,7 @@ BEGIN
         SELECT IFNULL(COUNT(*), 0) > `capacitàMassima`(NEW.locale)
         FROM Animale A
         WHERE A.locale = NEW.locale
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Capacità superata';
     END IF;
@@ -82,8 +80,7 @@ CREATE TRIGGER `chk_animale_locale_UPDATE`
 BEFORE UPDATE ON `Animale` FOR EACH ROW
 rowss: BEGIN
     -- Nulla da fare...
-    IF (NEW.locale = OLD.locale)
-    THEN
+    IF (NEW.locale = OLD.locale) THEN
         LEAVE rowss;
     END IF;
 
@@ -91,8 +88,7 @@ rowss: BEGIN
         SELECT NEW.specie = L.`specie ammessa`
         FROM Locale L
         WHERE L.id = NEW.locale
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'La specie non è ammessa';
     END IF;
@@ -102,8 +98,7 @@ rowss: BEGIN
         SELECT IFNULL(COUNT(*), 0) > `capacitàMassima`(NEW.locale)
         FROM Animale A
         WHERE A.locale = NEW.locale
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Capacità superata';
     END IF;
@@ -120,8 +115,7 @@ BEGIN
         SELECT A.sesso = 'Maschio'
         FROM Animale A
         WHERE A.id = NEW.padre
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Il padre deve essere maschio!';
     END IF;
@@ -144,8 +138,7 @@ BEGIN
         WHERE 
             T.madre = NEW.madre AND
             T.stato = 'Pendente'
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Un tentativo di riproduzione è ancora pendente!';
     END IF;
@@ -157,8 +150,7 @@ BEGIN
         WHERE 
             T.madre = NEW.madre AND
             T.stato = 'In corso'
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Una gestazione risulta tutt\'ora in corso!';
     END IF;
@@ -167,8 +159,7 @@ END;;
 CREATE TRIGGER `chk_TentativoRip_UPDATE`
 BEFORE UPDATE ON `Tentativo di riproduzione` FOR EACH ROW
 BEGIN
-    IF(NEW.madre <> OLD.madre OR NEW.padre <> OLD.padre)
-    THEN
+    IF (NEW.madre <> OLD.madre OR NEW.padre <> OLD.padre) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'È vietato cambiare i genitori!';
     END IF;
@@ -193,11 +184,8 @@ BEGIN
     IF NOT(NEW.stato = 'Conclusa' XOR EXISTS(
         SELECT 1
         FROM Parto P
-        WHERE 
-            P.madre = NEW.madre AND 
-            P.`data concepimento` = NEW.`data concepimento`
-    ))
-    THEN
+        WHERE P.madre = NEW.madre AND P.`data concepimento` = NEW.`data concepimento`
+    )) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Se è solo se è conlusa allora ha partorito!';
     END IF;
@@ -229,8 +217,7 @@ BEGIN
             PVC.`data concepimento` = NEW.`data visita programmata` AND
             PVC.madre = NEW.madre AND
             PVC.`data visita programmata` = NEW.`data concepimento` 
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Esami diagnostici possono essere inseriti se e solo se l\'esito è negativo';
     END IF;
@@ -246,8 +233,7 @@ BEGIN
         SELECT VC.animale <> NEW.madre
         FROM `Visita di controllo` VC
         WHERE VC.id = NEW.`visita di controllo`
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'La visita associata non è dello stesso animale!!';
     END IF;
@@ -260,8 +246,7 @@ BEGIN
         SELECT VC.animale <> NEW.madre
         FROM `Visita di controllo` VC
         WHERE VC.id = NEW.`visita di controllo`
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'La visita associata non è dello stesso animale!!';
     END IF;
@@ -282,8 +267,7 @@ BEGIN
         SELECT 1
         FROM `Zona pascolo` ZP
         WHERE st_intersects(ZP.confine, NEW.confine) AND NOT st_touches(ZP.confine, NEW.confine)
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Attenzione dei recinti si interesecano!';
     END IF;
@@ -318,23 +302,22 @@ BEGIN
             INNER JOIN Stalla S ON S.id = L.stalla
         WHERE L.id = NEW.locale
     ) = (
-        SELECT 1
+        SELECT ZP.`proprietà`
         FROM `Zona pascolo` ZP
         WHERE ZP.id = NEW.`zona pascolo`
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'La zona non è nel medesimo agriturismo';
     END IF;
     
-    IF ((
+    IF (
         WITH `PP` AS
         (
             WITH `PascoloOrdinato` AS
             (
                 SELECT P.`ora inizio` AS `start`, P.`ora fine` AS `end`
                 FROM Pascolo P
-                WHERE P.zona = NEW.`zona pascolo`
+                WHERE P.`zona pascolo` = NEW.`zona pascolo`
                 ORDER BY P.`ora inizio` DESC
             )
             SELECT `end` - LAG(`start`, 1) over () AS `differenza`
@@ -342,8 +325,7 @@ BEGIN
         )
         SELECT IFNULL(MIN(`differenza`), 500) AS `distanza minima`
         FROM PP
-    ) <= 30)
-    THEN
+    ) <= 30  THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'I pascoli devono almere 31 minuti di stacco sulla stessa zona';
     END IF;
@@ -422,7 +404,7 @@ BEGIN
                 WHERE P.locale = NEW.locale AND P.`ora inizio` <> NEW.`ora inizio`
                 ORDER BY P.`ora inizio` DESC
             )
-            SELECT TIMEDIFF(`end`, LAG(`start`, 1) over ()) AS `differenza`
+            SELECT TIME_TO_SEC(TIMEDIFF( `end`, LAG(`start`, 1) over () )) / 60.0 AS `differenza`
             FROM PascoloOrdinato PO
         )
         SELECT IFNULL(MIN(`differenza`), 500) AS `distanza minima`
@@ -455,8 +437,7 @@ BEGIN
             PSA.utente = NEW.`utente` AND PSA.`data arrivo` = NEW.`data arrivo` AND
             -- È una suite
             S.`tipologia stanza` = 'Suite'
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'È vietato prenotare servizi se prima non si prenotato SUITE';
     END IF;
@@ -483,8 +464,7 @@ BEGIN
         SELECT 1
         FROM `Prenotazione servizio` PS
         WHERE PS.utente = OLD.utente AND PS.`data arrivo` = OLD.`data arrivo`
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Impossibile elimare. Dei servizi prenotati pendono!\nEliminare dapprima i servizi!';
     END IF;
@@ -499,8 +479,7 @@ BEGIN
         SELECT S.stato IN ('In consegna', 'Consegnato')
         FROM Spedizione S 
         WHERE S.codice = NEW.`codice spedizione`
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Questa spedizione è già terminata!';
     END IF;
@@ -514,8 +493,7 @@ rowss: BEGIN
     DECLARE isCantina       BOOLEAN DEFAULT FALSE;
     
     -- Se non è stipato allora esco...
-    IF NEW.`stato` <> 'Conservato' 
-    THEN
+    IF NEW.`stato` <> 'Conservato' THEN
         LEAVE rowss;
     END IF;
     
@@ -531,8 +509,7 @@ rowss: BEGIN
         WHERE L.id = NEW.`locale stoccaggio`  
     );
     
-    IF(NOT(isCantina XOR hasStagionatura))
-    THEN
+    IF NOT( isCantina XOR hasStagionatura ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'stagionatura ⇔ Locale.tipo = \'Cantina\'';
     END IF;
@@ -623,8 +600,7 @@ BEGIN
         SELECT st_touches(ZP.confine, NEW.posizione)
         FROM `Zona pascolo` ZP
         WHERE ZP.id = NEW.`zona pascolo`
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Il punto inserito non appartiene alla frontiera della zona pascolo';
     END IF;
@@ -637,8 +613,7 @@ BEGIN
         SELECT st_touches(ZP.confine, NEW.posizione)
         FROM `Zona pascolo` ZP
         WHERE ZP.id = NEW.`zona pascolo`
-    )
-    THEN
+    ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Il punto inserito non appartiene alla frontiera della zona pascolo';
     END IF;

@@ -1,10 +1,9 @@
 /*
-Scrip DML per l'areaea ross
+Scrip DDL per l'areaea ross
 */
 
 -- Creazione delle tabelle
-CREATE TABLE `Veterinario`
-(
+CREATE TABLE `Veterinario`(
 `id`                    INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT
 );
 
@@ -111,8 +110,7 @@ CONSTRAINT padre FOREIGN KEY (padre) REFERENCES Animale(id),
 CONSTRAINT veterinario_fk FOREIGN KEY (veterinario) REFERENCES Veterinario(id)
 );
 
-CREATE TABLE `Gestazione`
-(
+CREATE TABLE `Gestazione`(
 `madre`                 BIGINT UNSIGNED NOT NULL,
 `data concepimento`     DATE NOT NULL,
 
@@ -217,8 +215,7 @@ CREATE TABLE `Rilevazione`(
 `valore`                        TEXT NOT NULL
 );
 
-CREATE TABLE `Terapia`
-(
+CREATE TABLE `Terapia`(
 `id`                            BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 
 `data inizio`                   DATE NOT NULL,
@@ -240,13 +237,11 @@ CONSTRAINT prescrittore_fk FOREIGN KEY (`veterinario`) REFERENCES Veterinario(id
 CONSTRAINT prescrizione_fk FOREIGN KEY (`visita di controllo`) REFERENCES `Visita di controllo`(id)
 );
 
-CREATE TABLE `Farmaco`
-(
+CREATE TABLE `Farmaco`(
 `nome`                          CHAR(100) PRIMARY KEY
 );
 
-CREATE TABLE `Somministrazione`
-(
+CREATE TABLE `Somministrazione`(
 `terapia`                                   BIGINT UNSIGNED NOT NULL,
 `farmaco`                                   CHAR(100) NOT NULL,
 
@@ -262,3 +257,16 @@ CONSTRAINT somministrando_fk FOREIGN KEY (`terapia`) REFERENCES Terapia(id),
 CONSTRAINT somministrato_fk FOREIGN KEY (farmaco) REFERENCES Farmaco(nome)
 );
 
+CREATE TABLE `Farmaci usati` (
+`farmaco`               CHAR(100) NOT NULL,
+`madre`                 BIGINT UNSIGNED NOT NULL,
+`data concepimento`     DATE NOT NULL,     
+
+`numero successi`       INT UNSIGNED DEFAULT 0,
+`numero insuccessi`     INT UNSIGNED DEFAULT 0,
+
+PRIMARY KEY (`farmaco`, `madre`, `data concepimento`),
+
+FOREIGN KEY (farmaco) REFERENCES Farmaco(nome),
+FOREIGN KEY (madre, `data concepimento`) REFERENCES Gestazione(madre, `data concepimento`)        
+);
