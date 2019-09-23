@@ -211,16 +211,6 @@ CREATE TABLE `Documento` (
 FOREIGN KEY (`utente store`) REFERENCES `Utente store`(`codice fiscale`)
 );
 
-CREATE TABLE `Carrello`(
-`ordine`					INT UNSIGNED,
-`nome prodotto caseario`		CHAR(70),
-`quantità`					TINYINT NOT NULL CHECK(`quantità` >= 1),
-
-PRIMARY KEY  pk1(`ordine`,`nome prodotto caseare`),
-
-FOREIGN KEY (`ordine`) REFERENCES `Ordine acquisto`(`codice ordine`)
-);
-
 CREATE TABLE `Ordine acquisto` (
 `codice ordine`         INT UNSIGNED PRIMARY KEY ,
 `utente store`          CHAR(16) NOT NULL,
@@ -230,6 +220,16 @@ CREATE TABLE `Ordine acquisto` (
 
 -- Controllo se è veramente spedito
 CHECK (NOT (stato = 'Spedito' XOR `codice spedizione` IS NOT NULL))
+);
+
+CREATE TABLE `Carrello`(
+`ordine`					INT UNSIGNED,
+`prodotto caseare`		    CHAR(70),
+`quantità`					TINYINT NOT NULL CHECK(`quantità` >= 1),
+
+PRIMARY KEY  pk1(`ordine`,`prodotto caseare`),
+
+FOREIGN KEY (`ordine`) REFERENCES `Ordine acquisto`(`codice ordine`)
 );
 
 CREATE TABLE `HUB` (

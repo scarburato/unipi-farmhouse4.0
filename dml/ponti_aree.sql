@@ -39,4 +39,4 @@ ALTER TABLE `Composizione ordine` ADD
     FOREIGN KEY (`forma di formaggio`) REFERENCES Forma(id);
     
 ALTER TABLE `Carrello` ADD
-    FOREIGN KEY (`nome prodotto caseario`) REFERENCES `Prodotto caseario`(nome);
+    FOREIGN KEY (`prodotto caseare`) REFERENCES `Prodotto caseario`(nome);

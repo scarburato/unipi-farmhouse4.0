@@ -26,10 +26,11 @@ INSERT INTO Animale(`id`, `specie`, `razza`, `locale`, `sesso`, `altezza`, `data
 (4,  'Bos taurus', 'Bavarese', 1, 'Femmina', 93, '2019-05-01', 'Nato in casa');
 
 DELIMITER ;;
-CREATE PROCEDURE `popolaAnimali`()
+CREATE PROCEDURE `popolaAnimali`(
+	nAnimali        INT UNSIGNED
+)
 MODIFIES SQL DATA
 BEGIN
-    DECLARE nAnimali        INT UNSIGNED DEFAULT 60;
     DECLARE i               INT UNSIGNED DEFAULT 0;
     
     WHILE i < nAnimali DO
@@ -43,10 +44,6 @@ BEGIN
         SET i = i + 1;
     END WHILE;
 END;;
-
-CALL popolaAnimali();;
-
-DROP PROCEDURE popolaAnimali;;
 
 DELIMITER ;
 
