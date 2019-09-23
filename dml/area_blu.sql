@@ -215,6 +215,7 @@ CREATE TABLE `Ordine acquisto` (
 `codice ordine`         INT UNSIGNED PRIMARY KEY ,
 `utente store`          CHAR(16) NOT NULL,
 `codice spedizione`     INT UNSIGNED NULL DEFAULT NULL,
+`timestamp`             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
 `stato`                 ENUM('In processazione', 'In preparazione', 'Spedito', 'Eveso') NOT NULL DEFAULT 'In processazione',
 
