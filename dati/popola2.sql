@@ -33,6 +33,8 @@ MODIFIES SQL DATA
 BEGIN
     DECLARE i               INT UNSIGNED DEFAULT 0;
     
+    START TRANSACTION;
+    
     WHILE i < nAnimali DO
         INSERT INTO 
             Animale(`specie`, `razza`, `locale`, `sesso`, `altezza`, `data di nascita`, `tipo`) VALUES
@@ -43,6 +45,8 @@ BEGIN
                 );
         SET i = i + 1;
     END WHILE;
+    
+    COMMIT;
 END;;
 
 DELIMITER ;

@@ -41,7 +41,10 @@ BEGIN
     RETURN nuovaPos;
 END;;
 
-CREATE PROCEDURE `genFakePos`()
+CREATE PROCEDURE `genFakePos`(
+    IN nAnimali        BIGINT UNSIGNED,
+    IN noffset         BIGINT UNSIGNED
+)
 BEGIN
     DECLARE recinto             POLYGON DEFAULT ST_PolygonFromText(
     'POLYGON((
@@ -66,6 +69,7 @@ BEGIN
         SELECT A.id
         FROM Animale A
         WHERE A.locale = localeTarget
+        LIMIT nAnimali OFFSET noffset
     );
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET ancora = FALSE;
     
