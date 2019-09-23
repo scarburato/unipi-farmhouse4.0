@@ -200,6 +200,8 @@ FOREIGN KEY (`pascolo: locale`, `pascolo: ora`)
     REFERENCES Pascolo(`locale`, `ora inizio`)
 );
 
+CREATE SPATIAL INDEX g ON `Storico posizioni`(posizione);
+
 CREATE TABLE `Macchina`(
 `nome`                      CHAR(70) PRIMARY KEY,
 `descrizione`               TEXT NOT NULL

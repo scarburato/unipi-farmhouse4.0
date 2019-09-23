@@ -94,7 +94,7 @@ CREATE TABLE `Tentativo di riproduzione`(
 `data`                  DATE NOT NULL,
 
 `padre`                 BIGINT UNSIGNED NOT NULL,
-`stato`                 ENUM('Pendente', 'Successo', 'Insuccesso') NOT NULL,
+`stato`                 ENUM('Pendente', 'Successo', 'Insuccesso') NOT NULL DEFAULT 'Pendente',
 
 `veterinario`           INT UNSIGNED NOT NULL,
 
@@ -248,8 +248,8 @@ CREATE TABLE `Somministrazione`(
 
 `posologia`                                 INT UNSIGNED,
 
-`lista orari somministrazione`              JSON NOT NULL ,
-`lista giornate senza somministrazione`     JSON NOT NULL ,
+`lista orari somministrazione`              VARCHAR(250) NOT NULL,
+`lista giornate senza somministrazione`     VARCHAR(250) NOT NULL,
 
 -- terapia
 CONSTRAINT somministrando_fk FOREIGN KEY (`terapia`) REFERENCES Terapia(id),
