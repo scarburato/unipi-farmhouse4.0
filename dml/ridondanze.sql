@@ -54,4 +54,26 @@ BEGIN
 
 END;;
 
+/** RIDONDANZA SCHEDA MEDICA : COMPUTO DI SCHEDA MEDICA **/
+
+CREATE TRIGGER `Aggiorna_scheda_medica`
+AFTER INSERT ON `Rilevazione` FOR EACH ROW
+BEGIN
+    REPLACE INTO `Scheda medica`(indicatore,lettura,animale,veterinario,`data rilevazione`)
+        VALUES(NEW.indicatore,NEW.valore,(
+            SELECT V.animale
+            FROM `Visita di controllo` V
+            WHERE V.id = NEW.`visita di controllo`
+            ),(
+            SELECT V.veterinario
+            FROM `Visita di controllo` V
+            WHERE V.id = NEW.`visita di controllo`
+            ),(
+            SELECT V.`timestamp`
+            FROM `Visita di controllo` V
+            WHERE V.id = NEW.`visita di controllo`
+            )
+            
+            );
+END;;
 DELIMITER ;

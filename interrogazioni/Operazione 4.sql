@@ -1,0 +1,4 @@
+/** OPERAZIONE 4: COMPUTO DELLA SCHEDA MEDICA   **/
+
+SELECT SM.*
+FROM `Scheda medica` SM

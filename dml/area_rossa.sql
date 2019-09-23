@@ -20,6 +20,7 @@ CREATE TABLE `Razza`(
 PRIMARY KEY pk1(`nome`, specie)
 );
 
+
 CREATE TABLE `Animale`(
 `id`                        BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 
@@ -269,4 +270,22 @@ PRIMARY KEY (`farmaco`, `madre`, `data concepimento`),
 
 FOREIGN KEY (farmaco) REFERENCES Farmaco(nome),
 FOREIGN KEY (madre, `data concepimento`) REFERENCES Gestazione(madre, `data concepimento`)        
+);
+
+CREATE TABLE `Scheda medica`(
+`indicatore`        CHAR(100),
+`animale`           BIGINT UNSIGNED,
+`lettura`           DOUBLE NOT NULL,
+`veterinario`       INT UNSIGNED NOT NULL,
+`data rilevazione`  TIMESTAMP NOT NULL,
+
+PRIMARY KEY         pk1(`indicatore`,`animale`),
+
+
+FOREIGN KEY (`indicatore`) REFERENCES Indicatore(nome),
+
+FOREIGN KEY (`veterinario`) REFERENCES Veterinario(`id`),
+
+FOREIGN KEY (`animale`) REFERENCES Animale(`id`)
+
 );
