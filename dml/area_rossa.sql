@@ -262,6 +262,7 @@ CREATE TABLE `Farmaci usati` (
 `madre`                 BIGINT UNSIGNED NOT NULL,
 `data concepimento`     DATE NOT NULL,     
 
+`quantità`              INT UNSIGNED DEFAULT 0 COMMENT 'Attenzione non è sempre vero che n. successi + n.insucessi = quantità',
 `numero successi`       INT UNSIGNED DEFAULT 0,
 `numero insuccessi`     INT UNSIGNED DEFAULT 0,
 

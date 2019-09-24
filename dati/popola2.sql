@@ -21,9 +21,39 @@ INSERT INTO `Posizione locale`(locale, orientamento, lunghezza, larghezza) VALUE
 
 INSERT INTO Animale(`id`, `specie`, `razza`, `locale`, `sesso`, `altezza`, `data di nascita`, `tipo`) VALUES
 (1,  'Bos taurus', 'Bavarese', 1, 'Femmina', 100, '2018-01-01', 'Acquistato'),
-(2,  'Bos taurus', 'Bavarese', 1, 'Femmina', 85, '2018-01-01', 'Acquistato'),
+(2,  'Bos taurus', 'Bavarese', 1, 'Maschio', 85, '2018-01-01', 'Acquistato'),
 (3,  'Bos taurus', 'Bavarese', 1, 'Femmina', 90, '2018-11-01', 'Acquistato'),
 (4,  'Bos taurus', 'Bavarese', 1, 'Femmina', 93, '2019-05-01', 'Nato in casa');
+
+INSERT INTO `Veterinario` VALUES(2);
+
+INSERT INTO `Tentativo di riproduzione`(`madre`, `data`, `padre`, `veterinario`) VALUES
+(3, '2018-11-05', 2, 2);
+
+INSERT INTO `Gestazione`(`madre`, `data concepimento`, `veterinario`, `stato`) VALUES
+(3, '2018-11-05', 2, 'In corso');
+
+INSERT INTO `Programmazione visita di controllo`(`data visita programmata`, `madre`,`data concepimento`) VALUES
+('2018-11-30', 3, '2018-11-05');
+
+INSERT INTO `Visita di controllo`(`id`, `timestamp`, `animale`, `veterinario`) VALUES
+(5, '2018-11-30 10:32:02', 3, 2);
+
+UPDATE `Programmazione visita di controllo` PV SET 
+    PV.`visita di controllo` = 5,
+    PV.`esito` = 'Positivo'
+WHERE 
+    PV.`data visita programmata` = '2018-11-30' AND
+    PV.`madre` = 3 AND
+    PV.`data concepimento` = '2018-11-05';
+    
+INSERT INTO Farmaco VALUES ('Paracetamolo');
+
+INSERT INTO Terapia(id,`visita di controllo`, `data inizio`, `data fine`, `esito`, `veterinario`) VALUES
+    (1, 5, '2018-11-30', '2018-12-05', 'Successo',2);
+    
+INSERT INTO Somministrazione (`terapia`, `farmaco`, `posologia` , `lista orari somministrazione`, `lista giornate senza somministrazione`) VALUES
+(1, 'Paracetamolo', 5, '08:00:00', 'Lunedì,Saturno');
 
 DELIMITER ;;
 CREATE PROCEDURE `popolaAnimali`(
@@ -81,6 +111,9 @@ INSERT INTO `Zona pascolo` (`proprietà`, `confine`) VALUES
         43.71704058069942 10.49036654597271,
         43.72170801611923 10.49095183607004
     ))', 4326) );
+    
+INSERT INTO `Portale accesso pascolo`(posizione, `zona pascolo`) VALUES
+(ST_PointFromText('POINT(42.741840 11.0249000)', 4326), 1);
     
 INSERT INTO `Pascolo`(locale, `ora inizio`, `ora fine`, `zona pascolo`) VALUES
 (1, '08:00:00', '11:30:00', 1);

@@ -22,7 +22,7 @@ BEGIN
     
     illegale: LOOP
         -- Dove si muove l'animale ?
-        SET direzioneSpostamento = (SELECT radians((RAND() * 5000) % 360));
+        SET direzioneSpostamento = (SELECT radians((RAND() * 5497) % 360));
         
         SET nuovaPos = ST_PointFromText( concat(
             'Point( ',
@@ -55,8 +55,10 @@ BEGIN
         42.741840 11.0249000
     ))', 4326);    
     DECLARE startTime           TIME DEFAULT '08:00:00';
-    DECLARE endTime             TIME DEFAULT '11:30:00';
+    DECLARE endTime             TIME DEFAULT '11:29:45';
     DECLARE curTime             TIME DEFAULT startTime;
+    DECLARE lastTime            TIME DEFAULT NULL;
+    DECLARE uscito              BOOLEAN DEFAULT FALSE;
     
     DECLARE localeTarget        INT UNSIGNED DEFAULT 1;
     DECLARE animale             BIGINT;
@@ -83,22 +85,28 @@ BEGIN
         END IF;
         
         -- Parto dall'ultimo
-        SET pos = ST_PointFromText('POINT(42.749060 11.012900)', 4326);
+        SET pos = ST_PointFromText(
+            IF(RAND() > 0.5,'POINT(42.742558 11.002352)', 'POINT(42.742558 11.022958)'),
+            4326);
+        
+        -- Reimposto i tempi
+        SET lastTime = NULL;
         SET curTime = startTime;
         
-        WHILE curTime < endTime DO
+        WHILE curTime < endTime AND NOT uscito DO
             SET pos = randmove(pos, recinto);
             
             CALL insert_posizione_animale(
                 animale,
                 pos,
-                localeTarget,
-                startTime,
-                concat(CURRENT_DATE, ' ', curTime)
+                lastTime,
+                curTime,
+                uscito
             );
             
          --   SELECT concat(CURRENT_DATE, ' ', curTime);
             
+            SET lastTime = curTime;
             SET curTime = curTime + INTERVAL 1 MINUTE;
         END WHILE;
     END LOOP;

@@ -125,7 +125,13 @@ BEGIN
         VALUES (estremoSinistro + gradPerPartOriz*(i));
         SET i = i + 1;
     END WHILE;
-
+    
+    DROP TEMPORARY TABLE IF EXISTS `CROSS`;
+    
+    CREATE TEMPORARY TABLE `CROSS` AS(
+    SELECT *
+    FROM `heatmap_Vert` CROSS JOIN `heatmap_Oriz`); 
+    
 /************************************************************
  *                  COMPUTO DEL SOGGIORNO
  *                      DEGLI ANIMALI
@@ -133,24 +139,19 @@ BEGIN
  ************************************************************/
     SELECT 
         'pos' AS `name`,
-        V.latidudine,
-        O.longitudine,
-        (
-            SELECT COUNT(*)
-            FROM `Storico posizioni` SP
-            WHERE
-                -- Il pascolo (mi servo della ridodanza)
-                SP.`pascolo: locale` = localeP AND SP.`pascolo: ora` = orainizioP AND
-                
-                -- Si trovano gli animali che sono stati in quel rettangolo
-                ST_Latitude(SP.posizione) >= V.latidudine AND ST_Latitude(SP.posizione) < (V.latidudine + gradPerPartVert) AND
-                ST_Longitude(SP.posizione) >= O.longitudine AND ST_Longitude(SP.posizione) < (O.longitudine + gradPerPartOriz)
-                
-                -- È tra i margini temporali richiesti
-        ) AS `Numero posizioni registrate` -- ,
+        latidudine,
+        longitudine,
+        COUNT(SP.posizione) AS `Numero posizioni registrate` -- ,
         -- NULL AS `Animale(i) più frequente`
-    FROM `heatmap_Vert` V
-        CROSS JOIN `heatmap_Oriz` O 
+    FROM `CROSS`
+        LEFT JOIN `Storico posizioni` SP ON 
+            -- del pascolo interessato
+            SP.`pascolo: locale` = localeP AND SP.`pascolo: ora` = orainizioP AND
+            
+            -- nella partizione interessata
+            ST_Latitude(SP.posizione) >= latidudine AND ST_Latitude(SP.posizione) < (latidudine + gradPerPartVert) AND
+            ST_Longitude(SP.posizione) >= longitudine AND ST_Longitude(SP.posizione) < (longitudine + gradPerPartOriz)
+    GROUP BY latidudine, longitudine
     
     ;
     

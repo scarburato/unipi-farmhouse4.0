@@ -86,7 +86,7 @@ BEGIN
     -- Se l'area è troppo alta errore
     IF estremoSuperiore - estremoInferiore > 1.00 THEN
         SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT = 'L\'area selezionata ha dimensioni massive, la sua lunghezza rispetto ai meridiani supera i 100Km!\
+        SET MESSAGE_TEXT = 'L''area selezionata ha dimensioni massive, la sua lunghezza rispetto ai meridiani supera i 100Km!\
 È impossibile computare i dati come se fossero su di un piano anziché su una sfera!';
     END IF;
     
@@ -125,6 +125,19 @@ BEGIN
         VALUES (estremoSinistro + gradPerPartOriz*(i));
         SET i = i + 1;
     END WHILE;
+    
+    DROP TEMPORARY TABLE IF EXISTS `points`;
+    CREATE TEMPORARY TABLE `points` AS (
+        SELECT 
+            SP.animale,
+            SP.`timestamp`,
+            ST_Latitude(SP.posizione) AS `lat`,
+            ST_Longitude(SP.posizione) AS `lon`
+        FROM `Storico posizioni` SP
+        WHERE
+            -- Il pascolo (mi servo della ridodanza)
+            SP.`pascolo: locale` = localeP AND SP.`pascolo: ora` = orainizioP
+    );
 
 /************************************************************
  *                  COMPUTO DEL SOGGIORNO
@@ -132,30 +145,44 @@ BEGIN
  *              NELLE PARTIZIONI RETTANGOLARI
  ************************************************************/
     SELECT 
-        'pos' AS `name`,
+        'frequenza' AS `name`,
         V.latidudine,
         O.longitudine,
         (
             SELECT COUNT(*)
-            FROM `Storico posizioni` SP
+            FROM `points` P
             WHERE
-                -- Il pascolo (mi servo della ridodanza)
-                SP.`pascolo: locale` = localeP AND SP.`pascolo: ora` = orainizioP AND
-                
-                -- Si trovano gli animali che sono stati in quel rettangolo
-                ST_Latitude(SP.posizione) >= V.latidudine AND ST_Latitude(SP.posizione) < (V.latidudine + gradPerPartVert) AND
-                ST_Longitude(SP.posizione) >= O.longitudine AND ST_Longitude(SP.posizione) < (O.longitudine + gradPerPartOriz)
-                
-                -- È tra i margini temporali richiesti
-        ) AS `Numero posizioni registrate` -- ,
-        -- NULL AS `Animale(i) più frequente`
+                -- Il punto si trova nella partizione ?
+                P.lat >= V.latidudine  AND P.lat < (V.latidudine + gradPerPartVert) AND
+                P.lon >= O.longitudine AND P.lon < (O.longitudine + gradPerPartOriz)
+        ) AS `Numero posizioni registrate`
     FROM `heatmap_Vert` V
-        CROSS JOIN `heatmap_Oriz` O 
-    
+        CROSS JOIN `heatmap_Oriz` O
     ;
     
-    DROP TEMPORARY TABLE `heatmap_Oriz`;
-    DROP TEMPORARY TABLE `heatmap_Vert`;
+/************************************************************
+ *                     COMPUTO DELLA
+ *                     DELLA VELOCITÀ
+ *                   MEDIA DEGLI ANIMALI
+ ************************************************************/
+    WITH `delta` AS
+    (
+        SELECT 
+            SP.animale,
+            ST_Distance(SP.posizione, LAG(SP.Posizione, 1) OVER a) AS `deltaS`,
+            TIMEDIFF(SP.`timestamp`,  LAG(SP.`timestamp`, 1) OVER a) AS `deltaT`
+        FROM `Storico posizioni` SP
+        WHERE
+            -- Il pascolo (mi servo della ridodanza)
+            SP.`pascolo: locale` = localeP AND SP.`pascolo: ora` = orainizioP 
+        WINDOW a AS (PARTITION BY SP.animale ORDER BY `timestamp` ASC)
+    )
+    SELECT 
+        D.animale, 
+        SUM(D.deltaS) / SUM(TIME_TO_SEC(D.deltaT)) AS `velocità media [m/s]`,
+        SUM(D.deltaS / (TIME_TO_SEC(D.deltaT) * 60) < 0.01) AS `minuti stazionari`
+    FROM delta D
+    GROUP BY D.animale;
 END;;
 
 CALL heat_map_pascolo(1, '08:00:00');;

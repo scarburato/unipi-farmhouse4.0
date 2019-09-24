@@ -8,63 +8,112 @@ BEGIN
         FROM Pascolo P
         WHERE 
             P.locale = L.id AND
-            P.`ora inizio` > CURRENT_TIME AND
-            P.`ora inizio` <= CURRENT_TIME + INTERVAL 30 MINUTE
+            P.`ora inizio` >= CURRENT_TIME AND
+            P.`ora inizio` < addtime(CURRENT_TIME, 30)
         -- Per i check su Pascolo dovrebbe tornare solo un pascolo...
         LIMIT 1
     );
 END;;
 
-/** RIDODNAZE PASCOLO: Inserimento tramite procedura del pascolo **/
-CREATE PROCEDURE `insert_posizione_animale` 
-(
-    IN animale                  BIGINT UNSIGNED,
-    
-    IN posizione                POINT,
-    
-    IN ultimoRegistro           TIMESTAMP
-    INOUT tempo                 TIMESTAMP,
-    
-    OUT uscito                  BOOLEAN
-)
-MODIFIES SQL DATA
-BEGIN
-    DECLARE ultimoPascoloLocale      INT UNSIGNED DEFAULT NULL;
-    DECLARE ultimoPascoloOra         TIME DEFAULT NULL;    
-    
-    IF animale IS NULL OR posizione IS NULL OR (ultimoPascoloLocale IS NULL XOR ultimoPascoloOra IS NULL)
-    THEN
-        SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT = 'Alcuni paramatri non possono essere null!';
-    END IF;
-    
-    SET uscito = FALSE;
-    IF forceDifferentTime IS NOT NULL
-    THEN
-        SET tempo = forceDifferentTime;
-    END IF;
-    
-    -- Se l'ultimo pascolo non è stato passato allora lo calcolo (da Locale)
-    IF ultimoPascoloLocale IS NULL THEN
-        SELECT L.id, L.`Ultimo pascolo avviato` INTO ultimoPascoloLocale, ultimoPascoloOra
-        FROM Animale A
-            INNER JOIN Locale L ON L.id = A.locale
-        WHERE A.id = animale;
-    END IF;
-    
-    -- Controllo se sono passsato per un varco
-    SET uscito = 0 <>ANY(
-        -- La distanza da un portale è meno di metri 5
-        SELECT ST_Distance_Sphere(PAP.posizione, posizione) < 5
-        FROM `Portale accesso pascolo` PAP
-            INNER JOIN Pascolo P ON P.`zona pascolo` = PAP.`zona pascolo`
-        WHERE P.locale = ultimoPascoloLocale AND P.`ora inizio` = ultimoPascoloOra
-    );
-    
-    -- Inserisco nella base allora
-    INSERT INTO `Storico posizioni`(`animale`,`timestamp`,`posizione`,`pascolo: locale`,`pascolo: ora`, rientro) VALUES
-        (animale, tempo, posizione, ultimoPascoloLocale, ultimoPascoloOra, uscito);
-
+/*** RIDONDAZA CISTERNA: RIEMPIMENTO AUTOMATICO ***/
+CREATE TRIGGER `update_latte_inserito` 
+BEFORE INSERT ON `Prodotto mungitura` FOR EACH ROW
+BEGIN  
+    -- Il check di cisterna farà abortire l'inserimento se si supera la quantità massima
+    UPDATE `Cisterna` C
+    SET C.`livello riempimento` = C.`livello riempimento` + NEW.`quantità`
+    WHERE C.id = NEW.cisterna;
 END;;
 
-DELIMITER ;
+/*** RIDODANZA CISTERNA: SVUOTAMENTO AUTOMATICO ***/
+CREATE TRIGGER `update_latte_usato`
+BEFORE INSERT ON `Latte usato` FOR EACH ROW
+BEGIN
+    -- Il check di cisterna farà abortire l'inserimento se si scende sotto 0
+    UPDATE `Cisterna` C
+    SET C.`livello riempimento` = C.`livello riempimento` - NEW.`latte usato`
+    WHERE C.id = NEW.cisterna;
+END;;
+
+/**** RIDODANZA FARMACI USATI: INSERIMENTO somministrazione ****/
+CREATE TRIGGER `update_Farmaci_usati` 
+AFTER INSERT ON `Somministrazione` FOR EACH ROW
+rowss: BEGIN
+    -- La chiave della gestazione, se esite
+    DECLARE Gmadre          BIGINT UNSIGNED DEFAULT NULL;
+    DECLARE Gdata           DATE DEFAULT NULL;
+    
+    -- Seleziono, se esite, la gestazione associata
+    SELECT PVC.`madre`, PVC.`data concepimento` INTO Gmadre, Gdata
+    FROM `Programmazione visita di controllo` PVC
+        INNER JOIN Terapia T ON T.`visita di controllo` = PVC.`visita di controllo`
+    WHERE T.`id` = NEW.terapia;
+    
+    -- Se non esiste un occorrenza in Programmazione Visita di controllo, non è una terapia
+    -- relativa ad una gestazione esco...
+    IF Gmadre IS NULL THEN
+        LEAVE rowss;
+    END IF;
+    
+    -- Se non esiste già un occorrenza in Farmaci 
+    IF NOT EXISTS (
+        SELECT 1 FROM `Farmaci usati` FU
+        WHERE FU.farmaco = NEW.farmaco AND FU.madre = Gmadre AND FU.`data concepimento` = Gdata
+    ) THEN
+        -- allora la inserisco
+        INSERT INTO `Farmaci usati`(farmaco, madre, `data concepimento`, `quantità`) VALUES
+            (NEW.farmaco, Gmadre, Gdata, 1);
+    ELSE
+        -- altrimenti aggiorno quantità
+        UPDATE `Farmaci usati` FU
+        SET FU.`quantità` = FU.`quantità` + 1
+        WHERE FU.farmaco = NEW.farmaco AND FU.madre = Gmadre AND FU.`data concepimento` = Gdata;
+    END IF;
+END;;
+
+/**** RIDODANZA FARMACI USATI: CONTEGGIO FALLIMENTI E SUCCESSI A FINE TERAPIA ****/
+CREATE TRIGGER `update_Farmaci_usati_esito`
+AFTER INSERT ON `Terapia` FOR EACH ROW
+rowss: BEGIN
+    -- La chiave della gestazione, se esite
+    DECLARE Gmadre          BIGINT UNSIGNED DEFAULT NULL;
+    DECLARE Gdata           DATE DEFAULT NULL;
+
+    -- Se l'esito è ancora nullo non ho nulla da fare...
+    IF NEW.esito IS NULL THEN
+        LEAVE rowss;
+    END IF;
+    
+    -- Seleziono, se esite, la gestazione associata
+    SELECT PVC.`madre`, PVC.`data concepimento` INTO Gmadre, Gdata
+    FROM `Programmazione visita di controllo` PVC
+    WHERE PVC.`visita di controllo` = NEW.`visita di controllo`;
+    
+    -- Se non esiste un occorrenza in Programmazione Visita di controllo, non è una terapia
+    -- relativa ad una gestazione esco...
+    IF Gmadre IS NULL THEN
+        LEAVE rowss;
+    END IF;
+    
+    -- La visita è un successo ?
+    IF NEW.esito = 'Successo' THEN
+        -- Aggiorno i successi
+        UPDATE `Farmaci usati` FU
+        SET FU.`numero successi` = FU.`numero successi` + (
+            -- Conto il numero di somministrazioni prescritte
+            SELECT COUNT(*)
+            FROM Somministrazione S
+            WHERE S.terapia = NEW.id
+        );
+    ELSE
+        -- Aggiorno gli insusccessi
+        UPDATE `Farmaci usati` FU
+        SET FU.`numero insuccessi` = FU.`numero insuccessi` + (
+            -- Conto il numero di somministrazioni prescritte
+            SELECT COUNT(*)
+            FROM Somministrazione S
+            WHERE S.terapia = NEW.id
+        );
+    END IF;
+    
+END;;

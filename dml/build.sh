@@ -29,6 +29,7 @@ basedati < ./vincoli.sql
 
 echo "Configurazione procedure ed automatismi di mantenimento delle ridodanze..."
 basedati < ./ridondanze.sql
+basedati < ./inspascolo.sql
 
 echo "Terminato!"
 unalias basedati

@@ -17,7 +17,7 @@ BEGIN
     DECLARE estremoInferiore    DOUBLE DEFAULT +90.0;
     
     -- Variabili per il calcolo del rettangolo
-    DECLARE numeroEstremi,i     INT UNSIGNED DEFAULT 0;
+    DECLARE numeroEstremi,i,j   INT UNSIGNED DEFAULT 0;
     DECLARE punto               POINT DEFAULT NULL;
     
     -- Dimensione delle partizioni
@@ -101,31 +101,48 @@ BEGIN
     SET gradPerPartOriz = (estremoDestro - estremoSinistro) / partizioniOriz;
     
     -- Ora creo la tabella con le tabelle con le partizioni
-    DROP TEMPORARY TABLE IF EXISTS `heatmap_Vert`;
-    CREATE TEMPORARY TABLE `heatmap_Vert`(
-        `latidudine`          DOUBLE NOT NULL
-    );
-    
-    DROP TEMPORARY TABLE IF EXISTS `heatmap_Oriz`;
-    CREATE TEMPORARY TABLE `heatmap_Oriz`(
-        `longitudine`         DOUBLE NOT NULL
+    DROP TEMPORARY TABLE IF EXISTS `heatboxes`;
+    CREATE TEMPORARY TABLE `heatboxes`(
+        `latidudine`        DOUBLE,
+        `longitudine`       DOUBLE,
+        
+        `partizione`        POLYGON NOT NULL
     );
     
     SET i = 0;
     WHILE i < partizioniVert DO
-        INSERT INTO `heatmap_Vert` 
-        -- TODO Mettere in una var separata
-        VALUES (estremoInferiore + gradPerPartVert*(i));
+        SET j = 0;
+        WHILE j < partizioniOriz DO
+            INSERT INTO `heatboxes` 
+            VALUES (
+                estremoInferiore + gradPerPartVert*(i),
+                estremoSinistro + gradPerPartOriz*(j),
+                
+                ST_SRID(POLYGON(LINESTRING(
+                    -- Questo costrutte prende (logn, lat)
+                    -- Estremo inferiore sinistro
+                    POINT(estremoSinistro + gradPerPartOriz*(j), estremoInferiore + gradPerPartVert*(i)),
+                    
+                    -- Estremo superiore sinistro 
+                    POINT(estremoSinistro + gradPerPartOriz*(j), estremoInferiore + gradPerPartVert*(i + 1)),
+                    
+                    -- Estremo superiore destro
+                    POINT(estremoSinistro + gradPerPartOriz*(j+1), estremoInferiore + gradPerPartVert*(i + 1)),
+                    
+                    -- Estremo inferiore destro
+                    POINT(estremoSinistro + gradPerPartOriz*(j+1), estremoInferiore + gradPerPartVert*(i)),
+                    
+                    -- A capo
+                    POINT(estremoSinistro + gradPerPartOriz*(j), estremoInferiore + gradPerPartVert*(i))
+                )), 4326)                
+            );
+            SET j = j + 1;
+        END WHILE;
+        
         SET i = i + 1;
     END WHILE;
     
-    SET i = 0;
-    WHILE i < partizioniOriz DO
-        INSERT INTO `heatmap_Oriz` 
-        VALUES (estremoSinistro + gradPerPartOriz*(i));
-        SET i = i + 1;
-    END WHILE;
-
+    SELECT ST_AsText(partizione) FROM heatboxes;
 /************************************************************
  *                  COMPUTO DEL SOGGIORNO
  *                      DEGLI ANIMALI
@@ -133,8 +150,8 @@ BEGIN
  ************************************************************/
     SELECT 
         'pos' AS `name`,
-        V.latidudine,
-        O.longitudine,
+        H.latidudine,
+        H.longitudine,
         (
             SELECT COUNT(*)
             FROM `Storico posizioni` SP
@@ -143,19 +160,16 @@ BEGIN
                 SP.`pascolo: locale` = localeP AND SP.`pascolo: ora` = orainizioP AND
                 
                 -- Si trovano gli animali che sono stati in quel rettangolo
-                ST_Latitude(SP.posizione) >= V.latidudine AND ST_Latitude(SP.posizione) < (V.latidudine + gradPerPartVert) AND
-                ST_Longitude(SP.posizione) >= O.longitudine AND ST_Longitude(SP.posizione) < (O.longitudine + gradPerPartOriz)
+                ST_Within(SP.posizione, H.partizione)
                 
                 -- È tra i margini temporali richiesti
         ) AS `Numero posizioni registrate` -- ,
         -- NULL AS `Animale(i) più frequente`
-    FROM `heatmap_Vert` V
-        CROSS JOIN `heatmap_Oriz` O 
+    FROM heatboxes H
     
     ;
     
-    DROP TEMPORARY TABLE `heatmap_Oriz`;
-    DROP TEMPORARY TABLE `heatmap_Vert`;
+    DROP TEMPORARY TABLE `heatboxes`;
 END;;
 
 CALL heat_map_pascolo(1, '08:00:00');;

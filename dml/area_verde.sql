@@ -142,13 +142,12 @@ CONSTRAINT `passo_ricetta_fk2` FOREIGN KEY (ricetta, `numero passo`)
 );
 
 CREATE TABLE `Cisterna`(
-`id`                    INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-`capacità`             DECIMAL(2,2) CHECK(`capacità` <> 0),
-`livello riempimento`   DECIMAL(2,2) ,
+`id`                   INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+`capacità`             DECIMAL(2,2) UNSIGNED CHECK(`capacità` <> 0),
+`livello riempimento`  DECIMAL(2,2) UNSIGNED,
 
-
-
-CHECK(`livello riempimento` <= `capacità`)
+CONSTRAINT `chk_livello_capacità_cisterna`
+    CHECK(`livello riempimento` <= `capacità` AND `livello riempimento` >= 0)
 );
 
 CREATE TABLE `Mungitrice`(
