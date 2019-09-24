@@ -7,7 +7,7 @@ alias basedati=mysql\ $DATABASE_NAME
 
 echo "Creo base di dati \"$DATABASE_NAME\"..."
 mysql -e "DROP DATABASE IF EXISTS $DATABASE_NAME"
-mysql -e "CREATE DATABASE $DATABASE_NAME CHARACTER SET utf8 COLLATE utf8_unicode_ci"
+mysql -e "CREATE DATABASE $DATABASE_NAME CHARACTER SET utf8 COLLATE utf8_general_ci"
 
 echo "Costruisco area servizi..."
 basedati < ./area_blu.sql
